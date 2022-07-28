@@ -35,7 +35,8 @@ export default class Task {
         })
     }
     end(){
-        process.exit();
+        let code = (this.errors.length) ? 99 : 0;
+        process.exit(this.errors.length);
     }
     async sendActions(actions) {
         try {

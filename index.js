@@ -23,7 +23,7 @@ function run(i){
         console.log(FILES[i].replace('.js', ''), "done with code", code);
         invoked = true;
         i++;
-        if(i < FILES.length) run(i);
+        if(i < FILES.length){ run(i) } else { console.log('DONE') };
         var err = code === 0 ? null : new Error('exit code ' + code);
         // TODO: MAIL ERROR CODE TO ADMIN EMAILS IF EXISTS
     });
