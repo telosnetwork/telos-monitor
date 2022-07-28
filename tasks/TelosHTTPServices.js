@@ -2,24 +2,7 @@ import Task from "../src/Task.js";
 import dotenv from 'dotenv/config';
 import axios from 'axios';
 
-const SERVICES = [
-    {
-        "id": "telos.net",
-        "url": 'https://www.telos.net',
-    }, {
-        "id": "app.telos.nets",
-        "url": 'https://app.telos.nets',
-    }, {
-        "id": "wallet.telos.net",
-        "url": 'https://wallet.telos.net',
-    }, {
-        "id": "explorer.telos.net",
-        "url": 'https://explorer.telos.net',
-    }, {
-        "id": "docs.telos.net",
-        "url": 'https://docs.telos.net',
-    }
-]
+const SERVICES = process.env.TSK_HTTP_SERVICES.split(',');
 
 class TelosHTTPServices extends Task {
     constructor(){
@@ -27,10 +10,10 @@ class TelosHTTPServices extends Task {
     }
     async run(){
         for(var i = 0;i<SERVICES.length;i++){
-            this.task_name = SERVICES[i].id;
+            this.task_name = SERVICES[i].replace('https://', '');
             this.errors = [];
             try {
-                let reply = await axios.get(SERVICES[i].url);
+                let reply = await axios.get(SERVICES[i]);
                 if(reply.status != 200){
                     this.errors.push("Replied with HTTP status " + reply.status)
                 }
