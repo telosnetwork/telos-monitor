@@ -2,7 +2,7 @@ import fs from 'fs';
 import dotenv from 'dotenv/config';
 import AWS from 'aws-sdk';
 
-const EMAIL_LIST = process.env.EMAIL_JSON;
+const EMAIL_LIST = "../" + process.env.EMAIL_JSON;
 
 export default class Mailer {
     constructor(user, password){
