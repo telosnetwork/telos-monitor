@@ -13,7 +13,7 @@ const { Pool } = pkg;
 export default class Task {
     constructor(task_name, cat_name){
         this.errors = [];
-        this.mailer = new Mailer();
+        this.mailer = (parseInt(process.env.NOTIFICATIONS) == true) ? new Mailer() : null;
         this.task_name = task_name;
         this.cat_name = cat_name;
         this.hyperion_endpoint = process.env.HYPERION_ENDPOINT;
@@ -83,18 +83,29 @@ export default class Task {
     async save(){
         if(this.task_name == null) throw "Task name cannot be null";
         const task_id = await this.getOrCreate(this.task_name, this.cat_name);
+
+        const last_task = await this.pool.query(
+            "SELECT * FROM task_status WHERE task = $1 LIMIT 1 ORDER BY id DESC",
+            [task_id]
+        );
         if(this.errors.length == 0){
             await this.pool.query(
                 "INSERT INTO task_status (task, message) VALUES ($1, $2)",
                 [task_id, ""]
             );
         } else {
+            let message = '';
             for(var i = 0; i< this.errors.length; i++){
+                message += this.errors[i] + ",";
                 let error = this.errors[i].substring(0, 255);
                 await this.pool.query(
                     "INSERT INTO task_status (task, message) VALUES ($1, $2)",
                     [task_id, error]
                 );
+            }
+            message = message.splice(0, -1);
+            if(this.mailer && last_task.rowCount == 0 || this.mailer && last_task.rows[0].message == ""){
+                this.mailer.notify(this.task_name, message);
             }
         }
     }
