@@ -6,7 +6,7 @@ const EMAIL_LIST = "../" + process.env.EMAIL_JSON;
 
 export default class Mailer {
     constructor(user, password){
-        AWS.config.update({region: 'REGION'});
+        AWS.config.update({region: 'us-east-1'});
     }
     function getParams(email, task, message){
         return {
