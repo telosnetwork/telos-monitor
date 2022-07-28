@@ -1,0 +1,24 @@
+{
+  "name": "telos-monitor",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "type": "module",
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@telosnetwork/telosevm-js": "^0.2.8",
+    "axios": "^0.27.2",
+    "child_process": "^1.0.2",
+    "crypto": "^1.0.1",
+    "dotenv": "^16.0.1",
+    "eosjs": "^22.1.0",
+    "ethers": "^5.6.9",
+    "fs": "0.0.1-security",
+    "node-fetch": "^3.2.9",
+    "pg": "^8.7.3"
+  }
+}
