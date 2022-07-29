@@ -1,9 +1,7 @@
 [{
-  "emails": [{
-    "email": "example@telos.net",
+    "email": "thomas.cuvillier@telos.net",
     "subscriptions": []
   }, {
-    "email": "example-with-subs@telos.net",
+    "email": "titiomm@gmail.com",
     "subscriptions": ["rng.oracle", "rng.bridge", "free.tf", "eosio.evm", "exrsrv.tf"]
-  }]
 }]

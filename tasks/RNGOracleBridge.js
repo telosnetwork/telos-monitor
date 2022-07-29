@@ -20,6 +20,7 @@ class RNGOracleBridge extends Task {
         }
     }
     async run(){
+        if(process.env.TSK_RNG_BRIDGE_EVM_CONTRACT == null || process.env.TSK_RNG_BRIDGE_NATIVE_EVM_ADDRESS == null) { this.end(); return; }
         await this.getBalance(process.env.TSK_RNG_BRIDGE_EVM_CONTRACT, 'EVM contract');
         await this.getBalance(process.env.TSK_RNG_BRIDGE_NATIVE_EVM_ADDRESS, 'Native contract EVM address');
         await this.save();

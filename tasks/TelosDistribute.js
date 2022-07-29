@@ -17,12 +17,21 @@ class TelosDistribute extends Task {
         for(var i = 0; i < actions.length; i++){
             let timestamp = new Date(actions[i].timestamp);
             if(actions[i].act.name == 'pay' && timestamp.getTime() > this.min_timestamp.getTime()){
-                this.save();
+                this.save(); // PAY FOUND
+                this.end();
                 return;
             }
         }
+        // IF PAY WASN'T FOUND IN TIME LIMIT
         this.errors.push("Could not find a pay action in the last "+ MINUTES +" minutes");
         await this.save();
+        // TRIGGER PAY OURSELVES
+        await this.sendActions([{
+            account: 'exrsvr.tf',
+            name: 'pay',
+            authorization: [{ actor: process.env.TSK_RNG_ORACLE_CONSUMER, permission: 'active' }],
+            data: {},
+        }]);
         this.end();
     }
 }
