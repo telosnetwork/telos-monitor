@@ -10,7 +10,7 @@ const signatureProvider = new JsSignatureProvider([process.env.PRIVATE_KEY]);
 
 export default class Contract extends Task {
     constructor(task_name){
-        super(task_name, 'endpoints');
+        super(task_name, 'contracts');
         this.hyperion_endpoint = process.env.HYPERION_ENDPOINT;
         let rpc = new JsonRpc(process.env.RPC_ENDPOINT, { fetch });
         this.api = new Api({

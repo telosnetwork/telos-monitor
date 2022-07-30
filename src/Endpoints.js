@@ -6,7 +6,7 @@ import eosjs from 'eosjs';
 import axios from 'axios';
 const JsonRpc = eosjs.JsonRpc;
 
-export default class Endpoint extends Task {
+export default class Endpoints extends Task {
     constructor(){
         super(null, 'endpoints');
     }

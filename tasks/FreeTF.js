@@ -31,7 +31,7 @@ class FreeTF extends Contract {
         });
         if(conflist_response.rows.length == 0){
             this.errors.push("Conflist: Could not get number of accounts");
-        } else if(conflist_response.rows[0].max_accounts - conflist_response.rows[0].total_accounts < MIN_TF_ACCOUNTS ) {
+        } else if(ACCOUNT_CONFLIST.includes(KEY) && conflist_response.rows[0].max_accounts - conflist_response.rows[0].total_accounts < MIN_TF_ACCOUNTS ) {
             this.errors.push("Conflist: less than "+ MIN_TF_ACCOUNTS +" to maximum accounts for accounts.tf");
         }
         const whitelist_response = await this.rpc.get_table_rows({
@@ -44,7 +44,7 @@ class FreeTF extends Contract {
         });
         if(whitelist_response.rows.length == 0){
             this.errors.push("Whitelist: could not get number of accounts");
-        } else if(whitelist_response.rows[0].max_accounts - whitelist_response.rows[0].total_accounts < MIN_TF_ACCOUNTS) {
+        } else if(ACCOUNT_CONFLIST.includes(KEY) && whitelist_response.rows[0].max_accounts - whitelist_response.rows[0].total_accounts < MIN_TF_ACCOUNTS) {
             this.errors.push("Whitelist: less than "+ MIN_TF_ACCOUNTS +" to maximum accounts for accounts.tf");
         }
     }
