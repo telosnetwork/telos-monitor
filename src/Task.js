@@ -82,16 +82,17 @@ export default class Task {
             );
         } else {
             let message = '';
+            let error = '';
             for(var i = 0; i< this.errors.length; i++){
                 message += this.errors[i] + ",";
-                let error = this.errors[i].substring(0, 255);
+                error = this.errors[i].substring(0, 255);
                 await this.pool.query(
                     "INSERT INTO task_status (task, message) VALUES ($1, $2)",
                     [task_id, error]
                 );
             }
             message = message.slice(0, -1);
-            if(this.mailer && last_task.rowCount == 0 || this.mailer && last_task.rows[0].message == "" ){
+            if(this.mailer && last_task.rowCount == 0 || this.mailer && last_task.rows[0].message != error){
                 await this.mailer.notify(this.task_name, this.cat_name, message);
             } else {
                 console.log('... Notification would be redundant')
