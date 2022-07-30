@@ -1,4 +1,4 @@
-import Task from "../src/Task.js";
+import Contract from "../src/Contract.js";
 import dotenv from 'dotenv/config';
 import axios from 'axios';
 
@@ -6,10 +6,12 @@ const ACCOUNT = 'free.tf';
 const KEY = 'accounts.tf';
 const MIN_RAM = parseInt(process.env.TSK_FREE_TF_MIN_RAM);
 const MIN_TF_ACCOUNTS = parseInt(process.env.TSK_FREE_TF_MIN_TF_ACCOUNTS);
+const ACCOUNT_WHITELIST = process.env.TSK_FREE_TF_ACCOUNT_WHITELIST.split(',');
+const ACCOUNT_CONFLIST = process.env.TSK_FREE_TF_ACCOUNT_CONFLIST.split(',');
 
-class FreeTF extends Task {
+class FreeTF extends Contract {
     constructor(){
-        super(ACCOUNT, "contracts");
+        super(ACCOUNT);
     }
     async run(){
         await this.checkRam();
@@ -56,7 +58,7 @@ class FreeTF extends Task {
             this.errors.push("Conflist: Could not get number of accounts");
         } else {
             for(var i = 0; i < conflist_response.rows.length; i++){
-                if(conflist_response.rows[i].total_accounts >= conflist_response.rows[i].max_accounts){
+                if(ACCOUNT_CONFLIST.includes(conflist_response.rows[i].account_name) && conflist_response.rows[i].total_accounts >= conflist_response.rows[i].max_accounts){
                     this.errors.push("Conflist: maximum accounts reached for " + conflist_response.rows[i].account_name);
                 }
             }
@@ -71,7 +73,7 @@ class FreeTF extends Task {
             this.errors.push("Conflist: Could not get number of accounts");
         } else {
             for(var i = 0; i < whitelist_response.rows.length; i++){
-                if(whitelist_response.rows[i].total_accounts >= whitelist_response.rows[i].max_accounts){
+                if(ACCOUNT_WHITELIST.includes(whitelist_response.rows[i].account_name) && whitelist_response.rows[i].total_accounts >= whitelist_response.rows[i].max_accounts){
                     this.errors.push("Whitelist: maximum accounts reached for " + whitelist_response.rows[i].account_name);
                 }
             }

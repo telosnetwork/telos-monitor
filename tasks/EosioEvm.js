@@ -1,13 +1,13 @@
-import Task from "../src/Task.js";
+import Contract from "../src/Contract.js";
 import dotenv from 'dotenv/config';
 import axios from 'axios';
 
 const MIN_FREE = process.env.TSK_EOSIO_EVM_MIN_FREE;
 const ACCOUNT = 'eosio.evm';
 
-class EosioEvm extends Task {
+class EosioEvm extends Contract {
     constructor(){
-        super(ACCOUNT, "contracts");
+        super(ACCOUNT);
     }
     async run(){
         const response = await axios.get(this.hyperion_endpoint + "/state/get_account?account=" + ACCOUNT);

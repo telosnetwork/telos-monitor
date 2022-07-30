@@ -1,12 +1,6 @@
 import Mailer from './Mailer.js';
 import dotenv from 'dotenv/config';
 import eosjs from 'eosjs';
-const JsonRpc = eosjs.JsonRpc;
-const Api = eosjs.Api;
-import fetch from 'node-fetch';
-import { TextEncoder, TextDecoder } from 'util';
-import { JsSignatureProvider } from 'eosjs/dist/eosjs-jssig.js';
-const signatureProvider = new JsSignatureProvider([process.env.PRIVATE_KEY]);
 import pkg from 'pg';
 const { Pool } = pkg;
 
@@ -16,16 +10,7 @@ export default class Task {
         this.mailer = (parseInt(process.env.NOTIFICATIONS) == true) ? new Mailer() : false;
         this.task_name = task_name;
         this.cat_name = cat_name;
-        this.hyperion_endpoint = process.env.HYPERION_ENDPOINT;
         this.check_interval = 1800;
-        let rpc = new JsonRpc(process.env.RPC_ENDPOINT, { fetch });
-        this.api = new Api({
-            rpc,
-            signatureProvider,
-            textDecoder: new TextDecoder(),
-            textEncoder: new TextEncoder()
-        });
-        this.rpc = rpc;
         this.pool = new Pool({
             user: process.env.DATABASE_USER,
             database: process.env.DATABASE,

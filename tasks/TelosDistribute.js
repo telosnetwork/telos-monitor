@@ -1,12 +1,12 @@
-import Task from "../src/Task.js";
+import Contract from "../src/Contract.js";
 import dotenv from 'dotenv/config';
 import axios from 'axios';
 
 const MINUTES = parseInt(process.env.TSK_TELOS_DISTRIBUTE_PAY_MN);
 
-class TelosDistribute extends Task {
+class TelosDistribute extends Contract {
     constructor(){
-        super('exrsvr.tf', "contracts");
+        super('exrsvr.tf');
         this.min_timestamp = new Date();
         this.min_timestamp.setMinutes(this.min_timestamp.getMinutes() - MINUTES);
     }
@@ -17,14 +17,13 @@ class TelosDistribute extends Task {
         for(var i = 0; i < actions.length; i++){
             let timestamp = new Date(actions[i].timestamp);
             if(actions[i].act.name == 'pay' && timestamp.getTime() > this.min_timestamp.getTime()){
-                this.save(); // PAY FOUND
+                await this.save(); // PAY FOUND
                 this.end();
                 return;
             }
         }
         // IF PAY WASN'T FOUND IN TIME LIMIT
         this.errors.push("Could not find a pay action in the last "+ MINUTES +" minutes");
-        await this.save();
         // TRIGGER PAY OURSELVES
         await this.sendActions([{
             account: 'exrsvr.tf',
@@ -32,6 +31,7 @@ class TelosDistribute extends Task {
             authorization: [{ actor: process.env.TSK_RNG_ORACLE_CONSUMER, permission: 'active' }],
             data: {},
         }]);
+        await this.save();
         this.end();
     }
 }

@@ -1,4 +1,4 @@
-import Task from "../src/Task.js";
+import Contract from "../src/Contract.js";
 import dotenv from 'dotenv/config';
 import axios from 'axios';
 
@@ -7,9 +7,9 @@ const ACCOUNT = 'delphioracle';
 const MINUTES = parseInt(process.env.TSK_DELPHI_ORACLE_DATAPOINTS_MN);
 const TOKENS = process.env.TSK_DELPHI_ORACLE_TOKENS.split(',');
 
-class PriceFeedOracle extends Task {
+class PriceFeedOracle extends Contract {
     constructor(){
-        super(ACCOUNT, 'contracts');
+        super(ACCOUNT);
         this.min_timestamp = new Date();
         this.min_timestamp.setMinutes(this.min_timestamp.getMinutes() - MINUTES);
     }

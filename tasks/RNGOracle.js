@@ -1,4 +1,4 @@
-import Task from "../src/Task.js";
+import Contract from "../src/Contract.js";
 import dotenv from 'dotenv/config';
 
 const MAX = 5;
@@ -7,9 +7,9 @@ const MIN = 1;
 const RESPONSE_MS = process.env.TSK_RNG_ORACLE_RESPONSE_MS;
 const ORACLE_CONSUMER = process.env.TSK_RNG_ORACLE_CONSUMER;
 
-class RNGOracle extends Task {
+class RNGOracle extends Contract {
     constructor(){
-        super("rng.oracle", "contracts");
+        super("rng.oracle");
     }
     async run(){
         const response = await this.rpc.get_table_rows({
