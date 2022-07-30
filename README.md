@@ -4,6 +4,7 @@ This project runs tasks on the Telos Network contracts, services & endpoints and
 It is the backend of the monitoring system, meant to be run with POSTGREST API and [telos-monitor-dashboard](https://github.com/telosnetwork/telos-monitor-dashboard) project for the frontend.
 
 You can find the testnet dashboard [hosted here](https://monitor-test.telos.net/#/)
+
 You can find the mainnet dashboard [hosted here](https://monitor.telos.net/#/)
 
 ## Requirements
