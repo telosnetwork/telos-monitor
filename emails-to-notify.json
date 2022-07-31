@@ -1,7 +1,16 @@
 [{
-  "email": "titiomm@gmail.com",
-  "subscriptions": ["free.tf", "rng.oracle", "exrsrv.tf", "delphioracle", "eosio.evm"]
-},{
-  "email": "thomas.cuvillier@telos.net",
-  "subscriptions": []
+  "testnet" : [{
+    "email": "titiomm@gmail.com",
+    "subscriptions": ["free.tf", "rng.oracle", "exrsrv.tf", "delphioracle", "eosio.evm"]
+  },{
+    "email": "thomas.cuvillier@telos.net",
+    "subscriptions": []
+  }],
+  "mainnet" : [{
+    "email": "titiomm@gmail.com",
+    "subscriptions": ["free.tf", "rng.oracle", "exrsrv.tf", "delphioracle", "eosio.evm"]
+  },{
+    "email": "thomas.cuvillier@telos.net",
+    "subscriptions": []
+  }]
 }]
