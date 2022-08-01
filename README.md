@@ -17,14 +17,18 @@ Run `npm install` from the project root directory
 
 Then navigate to `contracts/native` and deploy the helper contracts using cleos, put the private key to the deployment account in the .env file under `PRIVATE_KEY`
 
-## Build
+## Run
 
-`npm run build` from the project root directory
+Use `node index.js` from the project root directory
 
-## Serve
+## Cron
 
-`quasar serve dist/spa` from the project root directory to serve the SPA
+Use PM2 with `pm2 start index.js --cron "*/30 * * * *" --no-autorestart` from the project root directory to set it up as a 30 minutes cron job
 
-## Dev
+## Add task
 
-`quasar dev` for serving dev with hotreload, etc..
+Add a task to the `tasks` directory to add a new task. Use existing tasks as examples.
+
+You will need to create a new `MyTask` class that extends the `Task`, `Contract` or `HTTPService` class.
+
+Use the `save()` method to save the current task errors, or lack thereof, and the `end()` method to stop the task and call the next one
