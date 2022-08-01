@@ -10,15 +10,9 @@ class EosioEvm extends Contract {
         super(ACCOUNT);
     }
     async run(){
-        const response = await axios.get(this.hyperion_endpoint + "/state/get_account?account=" + ACCOUNT);
-        if((((response.data.account.ram_quota - response.data.account.ram_usage) / response.data.account.ram_quota) * 100) < MIN_FREE){
-            this.errors.push("Less than " + MIN_FREE +"% RAM is free");
-        }
-        if((((response.data.account.cpu_limit.max - response.data.account.cpu_limit.used) / response.data.account.cpu_limit.max) * 100) < MIN_FREE){
-            this.errors.push("Less than " + MIN_FREE +"% CPU is free");
-        }
-        if(((( response.data.account.net_limit.max - response.data.account.net_limit.used) / response.data.account.net_limit.max) * 100) < MIN_FREE){
-            this.errors.push("Less than " + MIN_FREE +"% NET is free");
+        const account = await this.getNativeAccount(ACCOUNT);
+        if(account){
+            this.checkAccountLimits(account, MIN_FREE);
         }
         await this.save();
         super.end();

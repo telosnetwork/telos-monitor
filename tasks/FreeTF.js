@@ -14,7 +14,8 @@ class FreeTF extends Contract {
         super(ACCOUNT);
     }
     async run(){
-        await this.checkRam();
+        const account = await this.getNativeAccount(ACCOUNT);
+        this.checkRAM(account, MIN_RAM);
         await this.checkAccountList();
         await this.checkAccountsTFList();
         await this.save();
@@ -31,7 +32,7 @@ class FreeTF extends Contract {
         });
         if(conflist_response.rows.length == 0){
             this.errors.push("Conflist: Could not get number of accounts");
-        } else if(conflist_response.rows[0].max_accounts - conflist_response.rows[0].total_accounts < MIN_TF_ACCOUNTS ) {
+        } else if(ACCOUNT_CONFLIST.includes(KEY) && conflist_response.rows[0].max_accounts - conflist_response.rows[0].total_accounts < MIN_TF_ACCOUNTS ) {
             this.errors.push("Conflist: less than "+ MIN_TF_ACCOUNTS +" to maximum accounts for accounts.tf");
         }
         const whitelist_response = await this.rpc.get_table_rows({
@@ -77,12 +78,6 @@ class FreeTF extends Contract {
                     this.errors.push("Whitelist: maximum accounts reached for " + whitelist_response.rows[i].account_name);
                 }
             }
-        }
-    }
-    async checkRam(){
-        const response = await axios.get(this.hyperion_endpoint + "/state/get_account?account=" + ACCOUNT);
-        if(((response.data.account.ram_usage / response.data.account.ram_quota) * 100) < MIN_RAM){
-            this.errors.push("Less than "+MIN_RAM+"% RAM is free");
         }
     }
 }
