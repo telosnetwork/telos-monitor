@@ -1,27 +1,31 @@
 import Contract from "../src/Contract.js";
 import dotenv from 'dotenv/config';
 
-const MAX = 5;
-const MIN = 1;
+const MAX = 99999;
+const MIN = 10000;
 
 const RESPONSE_MS = process.env.TSK_RNG_ORACLE_RESPONSE_MS;
 const ORACLE_CONSUMER = process.env.TSK_RNG_ORACLE_CONSUMER;
+const ACCOUNT = "rng.oracle";
+const MIN_RAM = process.env.TSK_RNG_ORACLE_MIN_RAM;
 
 class RNGOracle extends Contract {
     constructor(){
-        super("rng.oracle");
+        super(ACCOUNT);
     }
     async run(){
-        const response = await this.rpc.get_table_rows({
+        const account = await this.getNativeAccount(ACCOUNT);
+        this.checkRAM(account, MIN_RAM);
+        const last_request = await this.rpc.get_table_rows({
             code: ORACLE_CONSUMER,
             table: 'rngrequests',
             scope: ORACLE_CONSUMER,
             limit: 1,
             reverse: true
         });
-        let id = (response.rows.length == 0) ? 0 : response.rows[0].id + 1;
+        let id = (last_request.rows.length == 0) ? 0 : last_request.rows[0].id + 1;
         // REQUEST A RANDOM NUMBER
-        const result = await this.sendActions([{
+        const request = await this.sendActions([{
             account: ORACLE_CONSUMER,
             name: 'request',
             authorization: [{ actor: ORACLE_CONSUMER, permission: 'active' }],
