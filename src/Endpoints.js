@@ -51,7 +51,12 @@ export default class Endpoints extends Task {
                 if(provider == null || provider._isProvider == false || network == null){
                     healthy = false;
                 } else {
-                    process.env.RPC_EVM_ENDPOINT = endpoints[i];
+                    if((provider._lastBlockNumber * -1) > process.env.MAX_RPC_BLOCK_TRAIL){
+                        this.errors.push("RPC is", (provider._lastBlockNumber * -1), "blocks behind");
+                    } else {
+                        process.env.RPC_EVM_ENDPOINT = endpoints[i];
+                    }
+                    console.log("RPC is", (provider._lastBlockNumber * -1), "blocks behind");
                 }
             } catch (e) {
                 healthy = false;
@@ -66,17 +71,28 @@ export default class Endpoints extends Task {
 
     async checkRPCEndpointsAvailability() {
         const endpoints = process.env.RPC_ENDPOINTS.split(',');
-        for(var i = 0; i < endpoints.length; i++){
+        let main_rpc = new JsonRpc(process.env.RPC_ENDPOINT, { fetch });
+        let info = await main_rpc.get_info();
+        let highest_rpc_block = info.head_block_num;
+        for(let i = 0; i < endpoints.length; i++){
             let healthy = true;
             this.errors = [];
             this.task_name = endpoints[i].replace('https://', '');
             let rpc = new JsonRpc(endpoints[i], { fetch });
             try {
-                let info = await rpc.get_info();
+                info = await rpc.get_info();
                 if(info == null){
                     healthy = false;
                 } else {
-                    process.env.RPC_ENDPOINT = endpoints[i];
+                    let last_rpc_block = info.head_block_num;
+                    highest_rpc_block = (last_rpc_block > highest_rpc_block) ? last_rpc_block : highest_rpc_block;
+                    let block_diff = highest_rpc_block - last_rpc_block;
+                    if (block_diff > process.env.MAX_RPC_BLOCK_TRAIL) {
+                        this.errors.push("RPC is", block_diff, "blocks behind");
+                    } else {
+                        process.env.RPC_ENDPOINT = endpoints[i];
+                    }
+                    console.log("RPC is", block_diff, "blocks behind");
                 }
             } catch (e) {
                 healthy = false;
