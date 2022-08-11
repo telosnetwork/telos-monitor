@@ -6,9 +6,16 @@ import eosjs from 'eosjs';
 import axios from 'axios';
 const JsonRpc = eosjs.JsonRpc;
 
+const HYPERION_INDEXING_MINUTES = parseInt(process.env.TSK_ENDPOINTS_HYPERION_MINUTES);
+const HYPERION_QUERY_MAX_MS = parseInt(process.env.TSK_ENDPOINTS_HYPERION_QUERY_MAX_MS);
+const HYPERION_INDEX_MAX_BLOCKS_MISSED = parseInt(process.env.TSK_ENDPOINTS_HYPERION_INDEX_MAX_BLOCKS_MISSED);
+const HYPERION_INDEX_MAX_BLOCKS_AGO = parseInt(process.env.TSK_ENDPOINTS_HYPERION_INDEX_MAX_BLOCKS_AGO);
+
 export default class Endpoints extends Task {
     constructor(){
         super(null, 'endpoints');
+        this.min_hyperion_timestamp = new Date();
+        this.min_hyperion_timestamp.setMinutes(this.min_hyperion_timestamp.getMinutes() - HYPERION_INDEXING_MINUTES);
     }
     async checkAllEndpointsAvailability() {
         await this.checkHyperionEndpointsAvailability();
@@ -19,21 +26,42 @@ export default class Endpoints extends Task {
     async checkHyperionEndpointsAvailability() {
         const endpoints = process.env.HYPERION_ENDPOINTS.split(',');
         for(var i = 0; i < endpoints.length; i++){
-            let healthy = true;
             this.errors = [];
             this.task_name = endpoints[i].replace('https://', '');
             try {
                 let hyperionHealth = await axios.get(endpoints[i] + "/health");
                 if(hyperionHealth.status != 200){
-                    healthy = false;
+                    this.errors.push("Could not reach endpoint, HTTP status " + hyperionHealth.status);
                 } else {
-                    process.env.HYPERION_ENDPOINT = endpoints[i];
+                    let serviceMap = hyperionHealth.data.health.reduce((map, cur) => {map[cur.service] = cur; return map;}, {})
+                    if(serviceMap.NodeosRPC.service_data.head_block_time > this.min_hyperion_timestamp){
+                        this.errors.push('Nodeos isn\'t synced');
+                    } else {
+                        let caughtUpToHead = serviceMap.Elasticsearch.service_data.last_indexed_block >= (serviceMap.NodeosRPC.service_data.head_block_num - HYPERION_INDEX_MAX_BLOCKS_AGO);
+                        if(caughtUpToHead){
+                            if(hyperionHealth.data.health[0].status !== "OK") {
+                                this.errors.push('RabbitMQ status is not OK');
+                            }
+                            if(hyperionHealth.data.health[1].status !== "OK") {
+                                this.errors.push('Nodeos status is not OK');
+                            }
+                            if(hyperionHealth.data.health[1].status !== "OK") {
+                                this.errors.push('Nodeos status is not OK');
+                            }
+                            if(hyperionHealth.data.query_time_ms > HYPERION_QUERY_MAX_MS) {
+                                this.errors.push('Query time above', HYPERION_QUERY_MAX_MS , 'ms' );
+                            }
+                            if(hyperionHealth.data.health[1].service_data.chain_id !== process.env.CHAIN_ID_HEX) {
+                                this.errors.push('Wrong chain ID for Nodeos: ' + hyperionHealth.data.health[1].service_data.chain_id );
+                            }
+                        } else {
+                            this.errors.push('Indexing has not caught up to head');
+                        }
+                    }
                 }
             } catch (e) {
-                healthy = false;
-            }
-            if(!healthy){
-                this.errors.push("Could not reach endpoint");
+                console.log(e.message)
+                this.errors.push("Could not reach endpoint: " + e.message);
             }
             await this.save();
         }

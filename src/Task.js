@@ -28,13 +28,13 @@ export default class Task {
             const result = await this.api.transact({ actions: actions }, { blocksBehind: 3, expireSeconds: 30 });
             if(result.error_code != null){
                 this.errors.push("Error sending action: " + result.error_code)
-                this.save();
+                await this.save();
                 this.end();
                 return false;
             }
         } catch (e) {
             this.errors.push("Error sending action: " + e.message)
-            this.save();
+            await this.save();
             this.end();
             return false;
         }
