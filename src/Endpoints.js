@@ -45,8 +45,8 @@ export default class Endpoints extends Task {
                             if(hyperionHealth.data.health[1].status !== "OK") {
                                 this.errors.push('Nodeos status is not OK');
                             }
-                            if(hyperionHealth.data.health[1].status !== "OK") {
-                                this.errors.push('Nodeos status is not OK');
+                            if(hyperionHealth.data.health[2].status !== "OK") {
+                                this.errors.push('Elastic Search status is not OK');
                             }
                             if(hyperionHealth.data.query_time_ms > HYPERION_QUERY_MAX_MS) {
                                 this.errors.push('Query time above', HYPERION_QUERY_MAX_MS , 'ms' );
