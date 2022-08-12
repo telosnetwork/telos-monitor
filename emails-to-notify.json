@@ -6,8 +6,11 @@
     "email": "thomas.cuvillier@telos.net",
     "subscriptions": []
   },{
-        "email": "operations@telos.net",
-        "subscriptions": []
+    "email": "operations@telos.net",
+    "subscriptions": []
+  },{
+    "email": "alerts@telos.net",
+    "subscriptions": []
   }],
   "mainnet" : [{
     "email": "titiomm@gmail.com",
@@ -17,6 +20,9 @@
     "subscriptions": []
   },{
     "email": "operations@telos.net",
+    "subscriptions": []
+  },{
+    "email": "alerts@telos.net",
     "subscriptions": []
   }]
 }]
