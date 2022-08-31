@@ -25,7 +25,7 @@ export default class Task {
     }
     async sendActions(actions) {
         try {
-            const result = await this.api.transact({ actions: actions }, { blocksBehind: 3, expireSeconds: 30 });
+            const result = await this.api.transact({ actions: actions }, { blocksBehind: 3, expireSeconds: 90 });
             if(result.error_code != null){
                 this.errors.push("Error sending action: " + result.error_code)
                 await this.save();

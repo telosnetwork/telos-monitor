@@ -49,10 +49,14 @@ export default class Endpoints extends Task {
                                 this.errors.push('Elastic Search status is not OK');
                             }
                             if(hyperionHealth.data.query_time_ms > HYPERION_QUERY_MAX_MS) {
-                                this.errors.push('Query time above', HYPERION_QUERY_MAX_MS , 'ms' );
+                                this.errors.push('Query time was above ' + HYPERION_QUERY_MAX_MS + 'ms' );
                             }
                             if(hyperionHealth.data.health[1].service_data.chain_id !== process.env.CHAIN_ID_HEX) {
                                 this.errors.push('Wrong chain ID for Nodeos: ' + hyperionHealth.data.health[1].service_data.chain_id );
+                            }
+                            let EVMTransactionEndpointHealth = await axios.get(endpoints[i] + "/evm/get_transactions?limit=10&skip=0&sort=desc");
+                            if(EVMTransactionEndpointHealth.status != 200) {
+                                this.errors.push("Call to /evm/get_transactions?limit=10&skip=0&sort=desc ended in HTTP " + EVMTransactionEndpointHealth.status);
                             }
                         } else {
                             this.errors.push('Indexing has not caught up to head');
