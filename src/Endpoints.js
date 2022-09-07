@@ -34,7 +34,10 @@ export default class Endpoints extends Task {
                     this.errors.push("Could not reach endpoint, HTTP status " + hyperionHealth.status);
                 } else {
                     let serviceMap = hyperionHealth.data.health.reduce((map, cur) => {map[cur.service] = cur; return map;}, {})
-                    if(serviceMap.NodeosRPC.service_data.head_block_time > this.min_hyperion_timestamp){
+                    if(typeof serviceMap.NodeosRPC.service_data == "undefined"){
+                        this.errors.push('Nodeos service data not found');
+                    }
+                    else if(serviceMap.NodeosRPC.service_data.head_block_time > this.min_hyperion_timestamp){
                         this.errors.push('Nodeos isn\'t synced');
                     } else {
                         let caughtUpToHead = serviceMap.Elasticsearch.service_data.last_indexed_block >= (serviceMap.NodeosRPC.service_data.head_block_num - HYPERION_INDEX_MAX_BLOCKS_AGO);
@@ -54,10 +57,6 @@ export default class Endpoints extends Task {
                             if(hyperionHealth.data.health[1].service_data.chain_id !== process.env.CHAIN_ID_HEX) {
                                 this.errors.push('Wrong chain ID for Nodeos: ' + hyperionHealth.data.health[1].service_data.chain_id );
                             }
-                            let EVMTransactionEndpointHealth = await axios.get(endpoints[i] + "/evm/get_transactions?limit=10&skip=0&sort=desc");
-                            if(EVMTransactionEndpointHealth.status != 200) {
-                                this.errors.push("Call to /evm/get_transactions?limit=10&skip=0&sort=desc ended in HTTP " + EVMTransactionEndpointHealth.status);
-                            }
                         } else {
                             this.errors.push('Indexing has not caught up to head');
                         }
@@ -66,6 +65,17 @@ export default class Endpoints extends Task {
             } catch (e) {
                 console.log(e.message)
                 this.errors.push("Could not reach endpoint: " + e.message);
+            }
+            if(this.errors.length === 0 && endpoints[i] !== "https://telos.caleos.io/v2"){
+                try {
+                    let EVMTransactionEndpointHealth = await axios.get(endpoints[i] + "/evm/get_transactions?limit=10&skip=0&sort=desc");
+                    if (EVMTransactionEndpointHealth.status != 200) {
+                        this.errors.push("Call to /evm/get_transactions?limit=10&skip=0&sort=desc ended in HTTP " + EVMTransactionEndpointHealth.status);
+                    }
+                } catch (e) {
+                    console.log(e.message)
+                    this.errors.push("Could not reach endpoint: " + e.message);
+                }
             }
             await this.save();
         }
