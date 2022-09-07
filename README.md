@@ -31,6 +31,10 @@ Add a task to the `tasks` directory to add a new task. Use existing tasks as exa
 
 You will need to create a new `MyTask` class that extends the `Task`, `Contract` or `HTTPService` class.
 
-Add errors by pushing strings and integers to that parent class' `errors` array
+Add errors by pushing strings and integers to that parent class' `errors` array, ie:
+
+`this.errors.push('My error message')`
+
+Errors message above 255 characters will be truncated. Push multiple error messages instead !
 
 Use the `save()` method to save the current task errors, or lack thereof, and the `end()` method to stop the task and call the next one
