@@ -35,6 +35,6 @@ Add errors by pushing strings and integers to that parent class' `errors` array,
 
 `this.errors.push('My error message')`
 
-Errors message above 255 characters will be truncated. Push multiple error messages instead !
+Error messages above 255 characters will be truncated but you can push as many errors as you want.
 
 Use the `save()` method to save the current task errors, or lack thereof, and the `end()` method to stop the task and call the next one
