@@ -1,4 +1,4 @@
-import Task from "../src/Task.js";
+import Contract from "../src/Contract.js";
 import dotenv from 'dotenv/config';
 import axios from 'axios';
 
@@ -6,13 +6,16 @@ const ACCOUNT = 'free.tf';
 const KEY = 'accounts.tf';
 const MIN_RAM = parseInt(process.env.TSK_FREE_TF_MIN_RAM);
 const MIN_TF_ACCOUNTS = parseInt(process.env.TSK_FREE_TF_MIN_TF_ACCOUNTS);
+const ACCOUNT_WHITELIST = process.env.TSK_FREE_TF_ACCOUNT_WHITELIST.split(',');
+const ACCOUNT_CONFLIST = process.env.TSK_FREE_TF_ACCOUNT_CONFLIST.split(',');
 
-class FreeTF extends Task {
+class FreeTF extends Contract {
     constructor(){
-        super(ACCOUNT, "contracts");
+        super(ACCOUNT);
     }
     async run(){
-        await this.checkRam();
+        const account = await this.getNativeAccount(ACCOUNT);
+        this.checkRAM(account, MIN_RAM);
         await this.checkAccountList();
         await this.checkAccountsTFList();
         await this.save();
@@ -29,7 +32,7 @@ class FreeTF extends Task {
         });
         if(conflist_response.rows.length == 0){
             this.errors.push("Conflist: Could not get number of accounts");
-        } else if(conflist_response.rows[0].max_accounts - conflist_response.rows[0].total_accounts < MIN_TF_ACCOUNTS ) {
+        } else if(ACCOUNT_CONFLIST.includes(KEY) && conflist_response.rows[0].max_accounts - conflist_response.rows[0].total_accounts < MIN_TF_ACCOUNTS ) {
             this.errors.push("Conflist: less than "+ MIN_TF_ACCOUNTS +" to maximum accounts for accounts.tf");
         }
         const whitelist_response = await this.rpc.get_table_rows({
@@ -42,7 +45,7 @@ class FreeTF extends Task {
         });
         if(whitelist_response.rows.length == 0){
             this.errors.push("Whitelist: could not get number of accounts");
-        } else if(whitelist_response.rows[0].max_accounts - whitelist_response.rows[0].total_accounts < MIN_TF_ACCOUNTS) {
+        } else if(ACCOUNT_WHITELIST.includes(KEY) && whitelist_response.rows[0].max_accounts - whitelist_response.rows[0].total_accounts < MIN_TF_ACCOUNTS) {
             this.errors.push("Whitelist: less than "+ MIN_TF_ACCOUNTS +" to maximum accounts for accounts.tf");
         }
     }
@@ -56,7 +59,7 @@ class FreeTF extends Task {
             this.errors.push("Conflist: Could not get number of accounts");
         } else {
             for(var i = 0; i < conflist_response.rows.length; i++){
-                if(conflist_response.rows[i].total_accounts >= conflist_response.rows[i].max_accounts){
+                if(ACCOUNT_CONFLIST.includes(conflist_response.rows[i].account_name) && conflist_response.rows[i].total_accounts >= conflist_response.rows[i].max_accounts){
                     this.errors.push("Conflist: maximum accounts reached for " + conflist_response.rows[i].account_name);
                 }
             }
@@ -71,16 +74,10 @@ class FreeTF extends Task {
             this.errors.push("Conflist: Could not get number of accounts");
         } else {
             for(var i = 0; i < whitelist_response.rows.length; i++){
-                if(whitelist_response.rows[i].total_accounts >= whitelist_response.rows[i].max_accounts){
+                if(ACCOUNT_WHITELIST.includes(whitelist_response.rows[i].account_name) && whitelist_response.rows[i].total_accounts >= whitelist_response.rows[i].max_accounts){
                     this.errors.push("Whitelist: maximum accounts reached for " + whitelist_response.rows[i].account_name);
                 }
             }
-        }
-    }
-    async checkRam(){
-        const response = await axios.get(this.hyperion_endpoint + "/state/get_account?account=" + ACCOUNT);
-        if(((response.data.account.ram_usage / response.data.account.ram_quota) * 100) < MIN_RAM){
-            this.errors.push("Less than "+MIN_RAM+"% RAM is free");
         }
     }
 }

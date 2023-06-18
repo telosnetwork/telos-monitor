@@ -2,13 +2,14 @@ import fs from 'fs';
 import dotenv from 'dotenv/config';
 import AWS from 'aws-sdk';
 
-const EMAIL_LIST = "../" + process.env.EMAIL_JSON;
+const EMAIL_LIST = process.env.EMAIL_JSON;
 
 export default class Mailer {
-    constructor(user, password){
+    constructor(){
         AWS.config.update({region: 'us-east-1'});
+        this.sdk = new AWS.SES({apiVersion: '2010-12-01'});
     }
-    function getParams(email, task, message){
+    getParams(emails, task, message, cat){
         return {
             Destination: {
                 ToAddresses: emails
@@ -17,49 +18,54 @@ export default class Mailer {
                 Body: {
                     Html: {
                         Charset: "UTF-8",
-                        Data: formatHTMLMessage(task, message)
+                        Data: this.formatHTMLMessage(task, message, cat)
                     },
                     Text: {
                         Charset: "UTF-8",
-                        Data: "Task " + task + " encountered an error: " + message
+                        Data: "An alert for task " + task + " was saved: " + message
                     }
                 },
                 Subject: {
                     Charset: 'UTF-8',
-                    Data: "Task " + task + " error"
+                    Data: "[" + process.env.CHAIN + "] Alert for " + task + " (" + cat + ")"
                 }
             },
-            Source: 'no-reply@telos.net', /* required */
+            Source: 'noreply@telos.net', /* required */
             ReplyToAddresses: [],
         };
     }
-    function formatHTMLMessage(task, message){
-        return "<html><body><h1 style='text-align: center'>New alert: "+ task +"</h1><p style='margin-top: 50px'>"+ message +"</p><p style='margin-top: 50px;'><a href='"+ process.env.DASHBOARD_URL +"'>Visit Telos Monitoring</a></p></body></html>"
+    formatHTMLMessage(task, message, cat){
+        var date = new Date();
+        return "<!DOCTYPE html><html><body><h1 style='text-align:left;'>Alert for "+ task +" !</h1><div style='margin-top:50px;text-align: left;'><p>An alert for task <b>"+task+"</b> on "+ process.env.CHAIN.toLowerCase() +" was saved...</p><table cellspacing='0' cellpadding='0' style='text-align: left;'><tr><th style='padding-right: 20px;'>Date</th><td>"+ date.toUTCString() +"</td></tr><tr><th style='padding-right: 20px;'>Chain</th><td>"+ process.env.CHAIN.toLowerCase() +"</td></tr><tr><th style='padding-right: 20px;'>Category</th><td>"+ cat +"</td></tr><tr><th>Task</th><td>" + task+ "</td></tr><tr><th style='padding-right: 20px;'>Message</th><td>"+message+"</td></tr></table></div><p style='margin-top:20px;'><a href='"+ process.env.DASHBOARD_URL +"' target='_blank'>Visit Telos Monitoring</a></p><small style='margin-top:60px;display:block;'>To unsubscribe from this mailing list please edit <a href='https://github.com/telosnetwork/telos-monitor/blob/master/emails-to-notify.json' target='_blank'>this file</a> and submit a PR. </small> </body></html>"
     }
-    async notify(task, message){
-        // GET LAST 2 tasks so we can notify only once on down / once on up ?
+    async notify(task, cat, message){
         if(message == "") return;
         const emails = this.getEmails(task);
-        const message = this.formatMessage(task, message);
-        this.sendEmail(this.getParams(emails, task, message));
+        if(emails.length == 0){
+            console.log('No subscribed emails found');
+            return;
+        }
+        await this.sendEmail(this.getParams(emails, task, message, cat));
+        return;
     }
-    async function getEmails(task){
+    getEmails(task){
         let filtered = [];
-        let emails = JSON.parse(fs.readFileSync(EMAIL_LIST));
-        emails.forEach(email => {
-            if(email.subscriptions.length == 0 || email.subscriptions.include(task)){
-                filtered.push(email.email);
+        let emails = JSON.parse(fs.readFileSync(EMAIL_LIST))[0];
+        console.log(emails)
+        emails[process.env.CHAIN.toLowerCase()].forEach(row => {
+            if(row.subscriptions.length == 0 || row.subscriptions.includes(task)){
+                filtered.push(row.email);
             }
         })
         return filtered;
     }
-    async function sendEmail(params) {
-        var sendPromise = new AWS.SES({apiVersion: '2010-12-01'}).sendEmail(params).promise();
-        sendPromise.then(function(data) {
-            console.log(data.MessageId);
-        }).catch(
-        function(err) {
-            console.error(err, err.stack);
-        });
+    async sendEmail(params) {
+        console.log("... Sending email")
+        try {
+            const results = await this.sdk.sendEmail(params).promise();
+            console.log("... Email sent:", results.MessageId, "to", params.Destination.ToAddresses.length, "subscribers")
+        } catch (err) {
+            console.error(err);
+        }
     }
 }

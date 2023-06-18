@@ -1,9 +1,22 @@
 [{
-  "emails": [{
-    "email": "example@telos.net",
-    "subscriptions": []
-  }, {
-    "email": "example-with-subs@telos.net",
-    "subscriptions": ["rng.oracle", "rng.bridge", "free.tf", "eosio.evm", "exrsrv.tf"]
-  }]
+    "testnet" : [{
+        "email": "titiomm@gmail.com",
+        "subscriptions": ["free.tf", "rng.oracle", "exrsrv.tf", "delphioracle", "eosio.evm"]
+    },{
+        "email": "thomas.cuvillier@telos.net",
+        "subscriptions": []
+    },{
+        "email": "alerts@telos.net",
+        "subscriptions": []
+    }],
+    "mainnet" : [{
+        "email": "titiomm@gmail.com",
+        "subscriptions": ["free.tf", "rng.oracle", "exrsrv.tf", "delphioracle", "eosio.evm"]
+    },{
+        "email": "thomas.cuvillier@telos.net",
+        "subscriptions": []
+    },{
+        "email": "alerts@telos.net",
+        "subscriptions": []
+    }]
 }]

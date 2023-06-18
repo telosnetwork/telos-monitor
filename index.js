@@ -2,10 +2,9 @@ import fs from 'fs';
 import dotenv from 'dotenv/config';
 import childProcess from 'child_process';
 import axios from 'axios';
-import checkEndpointAvailability from './src/utils/endpoints.js';
+import Endpoints from './src/Endpoints.js';
+
 const TASK_PATH = 'tasks';
-
-
 var FILES = null;
 
 function run(i){
@@ -31,7 +30,8 @@ function run(i){
 
 async function main(){
     console.log('Checking endpoints...');
-    await checkEndpointAvailability();
+    let endpoints = new Endpoints();
+    await endpoints.checkAllEndpointsAvailability();
     console.log('Running tasks...');
     fs.readdir(TASK_PATH, async (err, files) => {
         FILES = files;

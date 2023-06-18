@@ -1,31 +1,16 @@
 import Mailer from './Mailer.js';
 import dotenv from 'dotenv/config';
 import eosjs from 'eosjs';
-const JsonRpc = eosjs.JsonRpc;
-const Api = eosjs.Api;
-import fetch from 'node-fetch';
-import { TextEncoder, TextDecoder } from 'util';
-import { JsSignatureProvider } from 'eosjs/dist/eosjs-jssig.js';
-const signatureProvider = new JsSignatureProvider([process.env.PRIVATE_KEY]);
 import pkg from 'pg';
 const { Pool } = pkg;
 
 export default class Task {
     constructor(task_name, cat_name){
         this.errors = [];
-        this.mailer = (parseInt(process.env.NOTIFICATIONS) == true) ? new Mailer() : null;
+        this.mailer = (parseInt(process.env.NOTIFICATIONS) == true) ? new Mailer() : false;
         this.task_name = task_name;
         this.cat_name = cat_name;
-        this.hyperion_endpoint = process.env.HYPERION_ENDPOINT;
         this.check_interval = 1800;
-        let rpc = new JsonRpc(process.env.RPC_ENDPOINT, { fetch });
-        this.api = new Api({
-            rpc,
-            signatureProvider,
-            textDecoder: new TextDecoder(),
-            textEncoder: new TextEncoder()
-        });
-        this.rpc = rpc;
         this.pool = new Pool({
             user: process.env.DATABASE_USER,
             database: process.env.DATABASE,
@@ -40,16 +25,16 @@ export default class Task {
     }
     async sendActions(actions) {
         try {
-            const result = await this.api.transact({ actions: actions }, { blocksBehind: 3, expireSeconds: 30 });
+            const result = await this.api.transact({ actions: actions }, { blocksBehind: 3, expireSeconds: 90 });
             if(result.error_code != null){
                 this.errors.push("Error sending action: " + result.error_code)
-                this.save();
+                await this.save();
                 this.end();
                 return false;
             }
         } catch (e) {
             this.errors.push("Error sending action: " + e.message)
-            this.save();
+            await this.save();
             this.end();
             return false;
         }
@@ -81,11 +66,13 @@ export default class Task {
         return res.rows[0].id;
     }
     async save(){
+        console.log('Saving', this.task_name)
+        console.log(this.errors)
         if(this.task_name == null) throw "Task name cannot be null";
         const task_id = await this.getOrCreate(this.task_name, this.cat_name);
 
         const last_task = await this.pool.query(
-            "SELECT * FROM task_status WHERE task = $1 LIMIT 1 ORDER BY id DESC",
+            "SELECT * FROM task_status WHERE task = $1  ORDER BY id DESC LIMIT 1",
             [task_id]
         );
         if(this.errors.length == 0){
@@ -95,22 +82,22 @@ export default class Task {
             );
         } else {
             let message = '';
+            let error = '';
             for(var i = 0; i< this.errors.length; i++){
                 message += this.errors[i] + ",";
-                let error = this.errors[i].substring(0, 255);
+                error = this.errors[i].substring(0, 255);
                 await this.pool.query(
                     "INSERT INTO task_status (task, message) VALUES ($1, $2)",
                     [task_id, error]
                 );
             }
-            message = message.splice(0, -1);
-            if(this.mailer && last_task.rowCount == 0 || this.mailer && last_task.rows[0].message == ""){
-                this.mailer.notify(this.task_name, message);
+            message = message.slice(0, -1);
+            if(this.mailer && last_task.rowCount == 0 || this.mailer && last_task.rows[0].message != error){
+                await this.mailer.notify(this.task_name, this.cat_name, message);
+            } else {
+                console.log('... Notification would be redundant')
             }
         }
-    }
-    async notify(error){
-        if(error == null) return;
-        // TODO: plug email services here
+        return;
     }
 }

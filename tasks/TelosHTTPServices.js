@@ -1,10 +1,9 @@
-import Task from "../src/Task.js";
+import HTTPService from "../src/HTTPService.js";
 import dotenv from 'dotenv/config';
-import axios from 'axios';
 
 const SERVICES = process.env.TSK_HTTP_SERVICES.split(',');
 
-class TelosHTTPServices extends Task {
+class TelosHTTPServices extends HTTPService {
     constructor(){
         super(null, "services");
     }
@@ -13,7 +12,7 @@ class TelosHTTPServices extends Task {
             this.task_name = SERVICES[i].replace('https://', '');
             this.errors = [];
             try {
-                let reply = await axios.get(SERVICES[i]);
+                let reply = await this.get(SERVICES[i]);
                 if(reply.status != 200){
                     this.errors.push("Replied with HTTP status " + reply.status)
                 }
