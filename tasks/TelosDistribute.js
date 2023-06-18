@@ -15,7 +15,11 @@ class TelosDistribute extends Contract {
         let found = false;
         for(var i = 0; i < actions.length; i++){
             let timestamp = new Date(actions[i].timestamp);
+<<<<<<< HEAD
             if(actions[i].act.name === 'pay' && timestamp.getTime() > this.min_timestamp.getTime()){
+=======
+            if(actions[i].act.name == 'pay' && timestamp.getTime() > this.min_timestamp.getTime()){
+>>>>>>> 847b1ae352b66dd522852d19e006b164bf731a16
                 await this.save(); // PAY FOUND
                 this.end();
                 return true;

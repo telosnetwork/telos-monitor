@@ -12,7 +12,11 @@ class EosioEvm extends Contract {
     async run(){
         const account = await this.getNativeAccount(ACCOUNT);
         if(account){
+<<<<<<< HEAD
            this.checkAccountLimits(account, MIN_FREE);
+=======
+            this.checkAccountLimits(account, MIN_FREE);
+>>>>>>> 847b1ae352b66dd522852d19e006b164bf731a16
         }
         await this.save();
         super.end();

@@ -1,4 +1,5 @@
 [{
+<<<<<<< HEAD
     "testnet" : [{
         "email": "titiomm@gmail.com",
         "subscriptions": ["free.tf", "rng.oracle", "exrsrv.tf", "delphioracle", "eosio.evm"]
@@ -20,3 +21,17 @@
         "subscriptions": []
     }]
 }]
+=======
+  "testnet" : [{
+    "email": "thomas.cuvillier@telos.net",
+    "subscriptions": []
+  }],
+  "mainnet" : [{
+    "email": "thomas.cuvillier@telos.net",
+    "subscriptions": []
+  },{
+    "email": "alerts@telos.net",
+    "subscriptions": []
+  }]
+}]
+>>>>>>> 847b1ae352b66dd522852d19e006b164bf731a16

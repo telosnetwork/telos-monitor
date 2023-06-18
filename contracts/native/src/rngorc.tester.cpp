@@ -5,6 +5,7 @@ ACTION rngorctester::request(uint64_t seed, uint64_t min, uint64_t max)
 {
     requests_table requests(get_self(), get_self().value);
 
+    auth(get_self());
     // add request
     uint64_t request_id = requests.available_primary_key();
     requests.emplace(get_self(), [&](auto& r) {
@@ -25,6 +26,7 @@ ACTION rngorctester::receiverand(uint64_t request_id, checksum256 random)
 {
     // find request
     requests_table requests(get_self(), get_self().value);
+    auth('rng.oracle'_n);
     auto &request = requests.get(request_id, "Request could not be found");
     auto byte_array = random.extract_as_byte_array();
     uint64_t random_int = 0;
@@ -41,6 +43,7 @@ ACTION rngorctester::receiverand(uint64_t request_id, checksum256 random)
 // remove a request
 ACTION rngorctester::rmvrequest(uint64_t request_id)
 {
+    auth(get_self());
     // find request
     requests_table requests(get_self(), get_self().value);
     auto itr = requests.find(request_id);
