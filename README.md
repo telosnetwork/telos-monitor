@@ -13,10 +13,10 @@ This repository uses NodeJS 14+
 
 ## Installation
 
-<<<<<<< HEAD
-Run `npm install` from the project root directory
-
-Then navigate to `contracts/native` and deploy the helper contracts using cleos, put the private key to the deployment account in the .env file under `PRIVATE_KEY`
+1. Run `npm install` from the project root directory
+2. Rename `.env.sample` to `.env` and customize accordingly
+3. Rename `emails-to-notify.json.sample` to `emails-to-notify.json` and customize accordingly
+4. Navigate to `contracts/native` and deploy the helper contracts using cleos, put the private key to the deployment account in the .env file under `PRIVATE_KEY`
 
 ## Run
 
@@ -39,9 +39,3 @@ Add errors by pushing strings and integers to that parent class' `errors` array,
 Error messages above 255 characters will be truncated but you can push as many errors as you want.
 
 Use the `save()` method to save the current task errors, or lack thereof, and the `end()` method to stop the task and call the next one
-=======
-1. Rename `.env.sample` to `.env` and customize accordingly
-1. Rename `database.conf.sample` to `database.conf` and customize accordingly
-2. Rename `emails-to-notify.json.sample` to `emails-to-notify.json` and customize accordingly
-3. Navigate to `contracts/native` and deploy the helper contracts to Antelope
->>>>>>> 13599919f2d6f2de1f5308bf449195d467c2ad27

@@ -1,6 +1,5 @@
 import Mailer from './Mailer.js';
 import dotenv from 'dotenv/config';
-import eosjs from 'eosjs';
 import pkg from 'pg';
 const { Pool } = pkg;
 
