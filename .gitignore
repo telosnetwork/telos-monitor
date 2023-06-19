@@ -7,6 +7,6 @@ package-lock.json
 node_modules
 package-lock.json
 .env
-.database.conf
+database.conf
 emails-to-notify.json
 >>>>>>> 13599919f2d6f2de1f5308bf449195d467c2ad27

@@ -1,0 +1,22 @@
+[{
+    "testnet" : [{
+        "email": "test@gmail.com",
+        "subscriptions": ["free.tf", "rng.oracle", "exrsrv.tf", "delphioracle", "eosio.evm"]
+    },{
+        "email": "test2@telos.net",
+        "subscriptions": []
+    },{
+        "email": "test3@telos.net",
+        "subscriptions": []
+    }],
+    "mainnet" : [{
+        "email": "test@gmail.com",
+        "subscriptions": ["free.tf", "rng.oracle", "exrsrv.tf", "delphioracle", "eosio.evm"]
+    },{
+        "email": "test@telos.net",
+        "subscriptions": []
+    },{
+        "email": "test2@telos.net",
+        "subscriptions": []
+    }]
+}]

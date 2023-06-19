@@ -41,6 +41,7 @@ Error messages above 255 characters will be truncated but you can push as many e
 Use the `save()` method to save the current task errors, or lack thereof, and the `end()` method to stop the task and call the next one
 =======
 1. Rename `.env.sample` to `.env` and customize accordingly
-2. Rename `example-email-to-notify.json` to `email-to-notify.json` and customize accordingly
+1. Rename `database.conf.sample` to `database.conf` and customize accordingly
+2. Rename `emails-to-notify.json.sample` to `emails-to-notify.json` and customize accordingly
 3. Navigate to `contracts/native` and deploy the helper contracts to Antelope
 >>>>>>> 13599919f2d6f2de1f5308bf449195d467c2ad27
