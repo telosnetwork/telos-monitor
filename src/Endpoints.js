@@ -36,32 +36,22 @@ export default class Endpoints extends Task {
                     let serviceMap = hyperionHealth.data.health.reduce((map, cur) => {map[cur.service] = cur; return map;}, {})
                     if(typeof serviceMap.NodeosRPC.service_data == "undefined"){
                         this.errors.push('Nodeos service data not found');
-<<<<<<< HEAD
                     } else if(serviceMap.NodeosRPC.service_data.head_block_time > this.min_hyperion_timestamp){
-=======
-                    }
-                    else if(serviceMap.NodeosRPC.service_data.head_block_time > this.min_hyperion_timestamp){
->>>>>>> 847b1ae352b66dd522852d19e006b164bf731a16
                         this.errors.push('Nodeos isn\'t synced');
                     } else {
                         let caughtUpToHead = serviceMap.Elasticsearch.service_data.last_indexed_block >= (serviceMap.NodeosRPC.service_data.head_block_num - HYPERION_INDEX_MAX_BLOCKS_AGO);
                         if(caughtUpToHead){
-<<<<<<< HEAD
-                            if(hyperionHealth.data.query_time_ms > HYPERION_QUERY_MAX_MS) {
-                                this.errors.push('Query time above' + HYPERION_QUERY_MAX_MS + 'ms' );
-=======
                             if(hyperionHealth.data.health[0].status !== "OK") {
-                                this.errors.push('RabbitMQ status is not OK');
+                                this.alerts.push('RabbitMQ status is not OK');
                             }
                             if(hyperionHealth.data.health[1].status !== "OK") {
-                                this.errors.push('Nodeos status is not OK');
+                                this.alerts.push('Nodeos status is not OK');
                             }
                             if(hyperionHealth.data.health[2].status !== "OK") {
-                                this.errors.push('Elastic Search status is not OK');
+                                this.alerts.push('Elastic Search status is not OK');
                             }
                             if(hyperionHealth.data.query_time_ms > HYPERION_QUERY_MAX_MS) {
-                                this.errors.push('Query time was above ' + HYPERION_QUERY_MAX_MS + 'ms' );
->>>>>>> 847b1ae352b66dd522852d19e006b164bf731a16
+                                this.alerts.push('Query time was above ' + HYPERION_QUERY_MAX_MS + 'ms' );
                             }
                             if(hyperionHealth.data.health[1].service_data.chain_id !== process.env.CHAIN_ID_HEX) {
                                 this.errors.push('Wrong chain ID for Nodeos: ' + hyperionHealth.data.health[1].service_data.chain_id );
@@ -155,8 +145,4 @@ export default class Endpoints extends Task {
         }
         return;
     }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 847b1ae352b66dd522852d19e006b164bf731a16

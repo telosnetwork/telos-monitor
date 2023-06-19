@@ -7,6 +7,7 @@ const { Pool } = pkg;
 export default class Task {
     constructor(task_name, cat_name){
         this.errors = [];
+	this.alerts = [];
         this.mailer = (parseInt(process.env.NOTIFICATIONS) == true) ? new Mailer() : false;
         this.task_name = task_name;
         this.cat_name = cat_name;
@@ -67,7 +68,6 @@ export default class Task {
     }
     async save(){
         console.log('Saving', this.task_name)
-        console.log(this.errors)
         if(this.task_name == null) throw "Task name cannot be null";
         const task_id = await this.getOrCreate(this.task_name, this.cat_name);
 

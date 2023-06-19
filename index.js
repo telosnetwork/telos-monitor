@@ -5,11 +5,7 @@ import axios from 'axios';
 import Endpoints from './src/Endpoints.js';
 
 const TASK_PATH = 'tasks';
-<<<<<<< HEAD
-var FILES = null;
-=======
 let FILES = null;
->>>>>>> 847b1ae352b66dd522852d19e006b164bf731a16
 
 // Loops on the tasks using the process's exit callback so they are run one by one
 function run(i){
@@ -35,11 +31,7 @@ function run(i){
 }
 
 async function main(){
-<<<<<<< HEAD
-    console.log('Checking endpoints...');
-=======
     console.log('Checking endpoints availability...');
->>>>>>> 847b1ae352b66dd522852d19e006b164bf731a16
     let endpoints = new Endpoints();
     await endpoints.checkAllEndpointsAvailability();
     console.log('Running tasks...');
