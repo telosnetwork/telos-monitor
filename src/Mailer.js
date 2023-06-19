@@ -51,9 +51,8 @@ export default class Mailer {
     getEmails(task){
         let filtered = [];
         let emails = JSON.parse(fs.readFileSync(EMAIL_LIST))[0];
-        console.log(emails)
         emails[process.env.CHAIN.toLowerCase()].forEach(row => {
-            if(row.subscriptions.length == 0 || row.subscriptions.includes(task)){
+            if(row.subscriptions?.length == 0 || row.subscriptions?.includes(task)){
                 filtered.push(row.email);
             }
         })

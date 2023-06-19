@@ -2,6 +2,11 @@ import Mailer from './Mailer.js';
 import dotenv from 'dotenv/config';
 import pkg from 'pg';
 const { Pool } = pkg;
+const ERROR_TYPES = {
+	INFO: 0,
+	ALERT: 1,
+	ERROR: 2,
+}
 
 export default class Task {
     constructor(task_name, cat_name){
@@ -16,8 +21,8 @@ export default class Task {
             database: process.env.DATABASE,
             password: process.env.DATABASE_PASSWORD,
             port: process.env.DATABASE_PORT,
-            host: 'localhost',
-        })
+            host: process.env.DATABASE_HOST,
+        });
     }
     end(){
         let code = (this.errors.length) ? 99 : 0;
@@ -65,6 +70,17 @@ export default class Task {
 
         return res.rows[0].id;
     }
+    async insertTaskStatuses(errors, message, type){
+        for(var i = 0; i< errors.length; i++){
+            message += errors[i] + ",";
+            let error = errors[i].substring(0, 255);
+            await this.pool.query(
+                "INSERT INTO task_status (task, message, type) VALUES ($1, $2, $3)",
+                [task_id, error, type]
+            );
+        }
+        return message;
+    }
     async save(){
         console.log('Saving', this.task_name)
         if(this.task_name == null) throw "Task name cannot be null";
@@ -74,24 +90,23 @@ export default class Task {
             "SELECT * FROM task_status WHERE task = $1  ORDER BY id DESC LIMIT 1",
             [task_id]
         );
-        if(this.errors.length == 0){
+        if(this.errors.length == 0 && this.alerts.length == 0){
             await this.pool.query(
                 "INSERT INTO task_status (task, message) VALUES ($1, $2)",
                 [task_id, ""]
             );
         } else {
             let message = '';
-            let error = '';
-            for(var i = 0; i< this.errors.length; i++){
-                message += this.errors[i] + ",";
-                error = this.errors[i].substring(0, 255);
-                await this.pool.query(
-                    "INSERT INTO task_status (task, message) VALUES ($1, $2)",
-                    [task_id, error]
-                );
+            if (this.alerts.length > 0){
+                message = this.insertTaskStatuses(this.alerts, message, ERROR_TYPES.ALERT);
+            }
+            if (this.errors.length > 0){
+                message = this.insertTaskStatuses(this.errors, message, ERROR_TYPES.ERROR);
             }
             message = message.slice(0, -1);
-            if(this.mailer && last_task.rowCount == 0 || this.mailer && last_task.rows[0].message != error){
+            // TODO: Check last notifications to not send it multiple times...
+            // Only send on error not alerts
+            if(this.errors.length > 0 && this.mailer && last_task.rowCount === 0){
                 await this.mailer.notify(this.task_name, this.cat_name, message);
             } else {
                 console.log('... Notification would be redundant')

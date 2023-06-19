@@ -21,6 +21,8 @@ export default class Endpoints extends Task {
         await this.checkHyperionEndpointsAvailability();
         await this.checkRPCEndpointsAvailability();
         await this.checkEVMRPCEndpointsAvailability();
+        await this.checkEVMIndexer();
+        this.end();
         return;
     }
     async checkHyperionEndpointsAvailability() {
@@ -80,6 +82,23 @@ export default class Endpoints extends Task {
         }
         return;
     }
+    async checkEVMIndexer() {
+        const endpoint = process.env.RPC_EVM_INDEXER;
+        this.errors = [];
+        this.task_name = endpoint.replace('https://', '');
+        await axios.get(endpoint + "/health").then((response) => {
+            if(!response.data?.success){
+                this.errors.push("EVM Indexer status is not OK");
+            } else if(response.data.secondsBehind > (process.env.MAX_RPC_BLOCK_TRAIL * 2)){
+                this.errors.push("EVM Indexer is", response.data.secondsBehind, "seconds behind");
+            }
+        }).catch((error) => {
+            console.log(error.message);
+            this.errors.push("Could not reach Indexer endpoint");
+        });
+        await this.save();
+        return;
+    }
     async checkEVMRPCEndpointsAvailability() {
         const endpoints = process.env.RPC_EVM_ENDPOINTS.split(',');
         for(var i = 0; i < endpoints.length; i++){
@@ -90,7 +109,8 @@ export default class Endpoints extends Task {
             try {
                 let network = await provider.getNetwork();
                 if(provider == null || provider._isProvider == false || network == null){
-                    healthy = false;
+                    this.errors.push("Could not reach RPC endpoint");
+                    console.log("Provider error");
                 } else {
                     if((provider._lastBlockNumber * -1) > process.env.MAX_RPC_BLOCK_TRAIL){
                         this.errors.push("RPC is", (provider._lastBlockNumber * -1), "blocks behind");
@@ -100,10 +120,8 @@ export default class Endpoints extends Task {
                     console.log("RPC is", (provider._lastBlockNumber * -1), "blocks behind");
                 }
             } catch (e) {
-                healthy = false;
-            }
-            if(!healthy){
-                this.errors.push("Could not reach endpoint");
+                console.log(e.message);
+                this.errors.push("Could not reach RPC endpoint");
             }
             await this.save();
         }
