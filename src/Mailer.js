@@ -14,7 +14,7 @@ export default class Mailer {
         var token = process.env.TELEGRAM_TOKEN;
         if(!token) return;
         var chat_id = process.env.TELEGRAM_CHAT_ID;
-        var url = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${message}&parse_mode=html&disable_web_page_preview=true`;
+        var url = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=\xE2\x9A\xA0%20${message}&parse_mode=html&disable_web_page_preview=true`;
         return await axios.get(url).then((response) => {
             console.log('Sent alert to Telegram');
             return true;
@@ -72,7 +72,7 @@ export default class Mailer {
     async notify(task, cat, errors, alerts, infos){
         if(errors.length === 0) return;
         try {
-            if(await this.sendTelegramMessage("<b>Error(s) for " + cat + " " + task + ": </b>\n" + errors.join("\n") + "\n\n<a href='" + process.env.DASHBOARD_URL + "'>Visit Telos Monitoring</a>")){
+            if(await this.sendTelegramMessage("<b>Error(s) for " + cat + " " + task + ": </b>\n\n" + errors.join("\n") + "\n\n<a href='" + process.env.DASHBOARD_URL + "'>> Visit Telos Monitoring</a>")){
                return;
             }
         } catch (error) {

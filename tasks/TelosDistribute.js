@@ -25,33 +25,32 @@ class TelosDistribute extends Contract {
     async run(){
         try {
             const response = await axios.get(this.hyperion_endpoint + "/history/get_actions?account="+ACCOUNT+"&limit=20");
-            await this.findPayAction(response.data.actions);
-            // IF PAY WASN'T FOUND TRIGGER PAY OURSELVES
-            await this.sendActions([{
-                account: ACCOUNT,
-                name: 'pay',
-                authorization: [{ actor: process.env.TSK_RNG_ORACLE_CONSUMER, permission: 'active' }],
-                data: {},
-            }]);
+            if(!await this.findPayAction(response.data.actions)){
+                // IF PAY WASN'T FOUND TRIGGER PAY OURSELVES
+                await this.sendActions([{
+                    account: ACCOUNT,
+                    name: 'pay',
+                    authorization: [{ actor: process.env.TSK_RNG_ORACLE_CONSUMER, permission: 'active' }],
+                    data: {},
+                }]);
 
-            // TIMEOUT FOR HYPERION TO CATCH UP
-            setTimeout(async () => {
-                try {
-                    const response_timed = await axios.get(this.hyperion_endpoint + "/history/get_actions?account="+ACCOUNT+"&limit=20");
-                    await this.findPayAction(response_timed.data.actions);
-                    this.errors.push("Was not able to pay, action not found");
-                } catch (e) {
-                    this.errors.push(e.message);
-                }
-                await this.save();
-                this.end();
-            }, 3000);
-        } catch (e) {
-            if(e.message.endsWith('No payouts are due')){
-                this.infos.push(e.message);
-            } else {
-                this.errors.push(e.message);
+                // TIMEOUT FOR HYPERION TO CATCH UP
+                setTimeout(async () => {
+                    try {
+                        const response_timed = await axios.get(this.hyperion_endpoint + "/history/get_actions?account="+ACCOUNT+"&limit=20");
+                        await this.findPayAction(response_timed.data.actions);
+                        this.errors.push("Was not able to pay, action not found");
+                    } catch (e) {
+                        console.log(e.message);
+                        this.errors.push(e.message);
+                    }
+                    await this.save();
+                    this.end();
+                }, 4000);
             }
+        } catch (e) {
+            console.log(e.message);
+            this.errors.push(e.message);
             await this.save();
             this.end();
         }

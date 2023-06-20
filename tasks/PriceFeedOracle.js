@@ -21,7 +21,7 @@ class PriceFeedOracle extends Contract {
             } else {
                 let timestamp = new Date(oraclePrices[0].timestamp);
                 if(timestamp.getTime() < this.min_timestamp.getTime()) {
-                    this.errors.push("Last TLOS"+ TOKENS[i].toUpperCase() +" datapoint written over "+MINUTES+" minutes ago");
+                    this.alerts.push("Last TLOS"+ TOKENS[i].toUpperCase() +" datapoint written over "+MINUTES+" minutes ago");
                 }
             }
         }

@@ -34,12 +34,13 @@ export default class Task {
         try {
             const result = await this.api.transact({ actions: actions }, { blocksBehind: 3, expireSeconds: 90 });
             if(result.error_code != null){
-                this.errors.push("Error sending action: " + result.error_code)
+                this.errors.push("Error sending action: " + result.error_code);
                 await this.save();
                 this.end();
                 return false;
             }
         } catch (e) {
+            if(e.message.indexOf('No payouts are due') > -1) return false;
             this.errors.push("Error sending action: " + e.message)
             await this.save();
             this.end();
@@ -87,25 +88,23 @@ export default class Task {
     }
     async notify(task_id){
         if(this.mailer === false) return;
-        const last_task = await this.pool.query(
-            "SELECT * FROM task_status WHERE task = $1 AND type = $2 AND checked_at > now() - interval '48 hours'  ORDER BY id DESC LIMIT 2",
-            [task_id, STATUS_TYPES.ERROR]
+        const errors = this.errors.map((error) => { return error.substr(0, 255)});
+        const last_tasks = await this.pool.query(
+            "SELECT * FROM task_status WHERE task = $1 AND type = $2 AND checked_at > now() - interval '48 hours' AND message IN ($3) ORDER BY id DESC LIMIT 2",
+            [task_id, STATUS_TYPES.ERROR, errors.join(',')]
         );    
-        if(last_task.rowCount === 1){
+        errors.forEach((error, i) => {
+            last_tasks.rows.forEach((row) => {
+                console.log(row.message, error);
+                if(row.message === error){
+                    this.errors.splice(i, 1);
+                }
+            })
+        })
+        if(this.errors.length > 0){
             console.log('Notification');
             return await this.mailer.notify(this.task_name, this.cat_name, this.errors, this.alerts, this.infos);
-        } else {
-            let exists = true;
-            for(const row of last_task.rows){
-                if(this.errors.includes(row.message) === false){
-                    exists = false;
-                }
-            }
-            if(exists === false){
-                console.log('Notification 2');
-                return await this.mailer.notify(this.task_name, this.cat_name, this.errors, this.alerts, this.infos);
-            }
-        }
+        } 
         console.log('Notification would be redundant. Skipping....');
     }
     async save(){
