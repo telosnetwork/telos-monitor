@@ -5,7 +5,7 @@ import axios from 'axios'
 export default class HTTPService extends Task {
 
     constructor(task_name){
-        super(task_name, 'services');
+        super(task_name, 'HTTP service');
     }
 
     async get(url){

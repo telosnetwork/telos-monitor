@@ -13,7 +13,7 @@ class RNGOracleBridge extends Contract {
         try {
             let balance = await this.provider.getBalance(address);
             if(ethers.utils.formatEther(balance) < MIN){
-                this.errors.push('TLOS balance is < '+ MIN +' for ' + name);
+                this.errors.push('TLOS balance is below '+ MIN +' for ' + name);
             }
         } catch (e) {
             this.errors.push('Could not retreive TLOS balance: ' +e.message);
