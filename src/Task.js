@@ -91,7 +91,7 @@ export default class Task {
         if(this.mailer === false || process.env.NOTIFICATIONS !== '1') return;
         const errors = this.errors.map((error) => { return error.substr(0, 255)});
         const last_tasks = await this.pool.query(
-            "SELECT * FROM task_status WHERE task = $1 AND type = $2 AND checked_at > now() - interval '48 hours' AND checked_at < now() - interval '2 minutes' AND message IN ($3) ORDER BY id DESC LIMIT 2",
+            "SELECT * FROM task_status WHERE task = $1 AND type = $2 AND checked_at > now() - interval '2 minutes' AND checked_at < now() - interval '1 minute' AND message IN ($3) ORDER BY id DESC LIMIT 2",
             [task_id, STATUS_TYPES.ERROR, errors.join(',')]
         );    
         errors.forEach((error, i) => {
