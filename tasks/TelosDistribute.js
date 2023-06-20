@@ -13,7 +13,7 @@ class TelosDistribute extends Contract {
     }
     async findPayAction(actions){
         for(var i = 0; i < actions.length; i++){
-            let timestamp = new Date(actions[i].timestamp + 'Z');
+            let timestamp = new Date(actions[i].timestamp + 'Z'); // Force UTC flag
             if(actions[i].act.name === 'pay' && timestamp.toISOString() > this.min_timestamp.toISOString()){
                  // PAY FOUND END TASK HERE
                 await this.save();
