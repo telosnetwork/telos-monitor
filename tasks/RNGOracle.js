@@ -58,7 +58,7 @@ class RNGOracle extends Contract {
                 if(request){
                     // CHECK NUMBER WAS SET
                     if(request.number == 0){
-                        ctx.errors.push("Oracle didn't answer in < "+RESPONSE_MS+"ms");
+                        ctx.alerts.push("Oracle didn't answer in less than " + RESPONSE_MS + "ms");
                     }
                     // CHECK NUMBER WAS WITHIN RANGE
                     else if(request.number < MIN || request.number > MAX){

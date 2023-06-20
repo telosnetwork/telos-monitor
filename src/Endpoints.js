@@ -13,7 +13,7 @@ const HYPERION_INDEX_MAX_BLOCKS_AGO = parseInt(process.env.TSK_ENDPOINTS_HYPERIO
 
 export default class Endpoints extends Task {
     constructor(){
-        super(null, 'endpoints');
+        super(null, 'endpoint');
         this.min_hyperion_timestamp = new Date();
         this.min_hyperion_timestamp.setMinutes(this.min_hyperion_timestamp.getMinutes() - HYPERION_INDEXING_MINUTES);
     }
@@ -22,7 +22,6 @@ export default class Endpoints extends Task {
         await this.checkRPCEndpointsAvailability();
         await this.checkEVMRPCEndpointsAvailability();
         await this.checkEVMIndexer();
-        this.end();
         return;
     }
     async checkHyperionEndpointsAvailability() {
@@ -32,34 +31,33 @@ export default class Endpoints extends Task {
             this.task_name = endpoints[i].replace('https://', '');
             try {
                 let hyperionHealth = await axios.get(endpoints[i] + "/health");
-                if(hyperionHealth.status != 200){
+                if(hyperionHealth.status !== 200){
                     this.errors.push("Could not reach endpoint, HTTP status " + hyperionHealth.status);
                 } else {
                     let serviceMap = hyperionHealth.data.health.reduce((map, cur) => {map[cur.service] = cur; return map;}, {})
-                    if(typeof serviceMap.NodeosRPC.service_data == "undefined"){
-                        this.errors.push('Nodeos service data not found');
+                    if(serviceMap.NodeosRPC.status === 'Error'){
+                        this.errors.push('Nodeos service status is not OK');
+                        this.infos.push(serviceMap.NodeosRPC.toString());
                     } else if(serviceMap.NodeosRPC.service_data.head_block_time > this.min_hyperion_timestamp){
-                        this.errors.push('Nodeos isn\'t synced');
+                        this.errors.push('Nodeos isn\'t synced, head block time is ' + serviceMap.NodeosRPC.service_data.head_block_time);
                     } else {
-                        let caughtUpToHead = serviceMap.Elasticsearch.service_data.last_indexed_block >= (serviceMap.NodeosRPC.service_data.head_block_num - HYPERION_INDEX_MAX_BLOCKS_AGO);
-                        if(caughtUpToHead){
-                            if(hyperionHealth.data.health[0].status !== "OK") {
-                                this.alerts.push('RabbitMQ status is not OK');
-                            }
-                            if(hyperionHealth.data.health[1].status !== "OK") {
-                                this.alerts.push('Nodeos status is not OK');
-                            }
-                            if(hyperionHealth.data.health[2].status !== "OK") {
-                                this.alerts.push('Elastic Search status is not OK');
-                            }
-                            if(hyperionHealth.data.query_time_ms > HYPERION_QUERY_MAX_MS) {
-                                this.alerts.push('Query time was above ' + HYPERION_QUERY_MAX_MS + 'ms' );
-                            }
-                            if(hyperionHealth.data.health[1].service_data.chain_id !== process.env.CHAIN_ID_HEX) {
-                                this.errors.push('Wrong chain ID for Nodeos: ' + hyperionHealth.data.health[1].service_data.chain_id );
-                            }
-                        } else {
-                            this.errors.push('Indexing has not caught up to head');
+                        if(!serviceMap.Elasticsearch.service_data.last_indexed_block >= (serviceMap.NodeosRPC.service_data.head_block_num - HYPERION_INDEX_MAX_BLOCKS_AGO)){
+                           this.errors.push('ELK indexing has not caught up to head, last indexed block is ' + serviceMap.Elasticsearch.service_data.last_indexed_block);
+                        }
+                        if(hyperionHealth.data.health[0].status !== "OK") {
+                            this.alerts.push('RabbitMQ health status is not OK');
+                        }
+                        if(hyperionHealth.data.health[1].status !== "OK") {
+                            this.alerts.push('Nodeos health status is not OK');
+                        }
+                        if(hyperionHealth.data.health[2].status !== "OK") {
+                            this.alerts.push('ELK health status is not OK');
+                        }
+                        if(hyperionHealth.data.query_time_ms > HYPERION_QUERY_MAX_MS) {
+                            this.alerts.push('Hyperion health query time was above ' + HYPERION_QUERY_MAX_MS + 'ms' );
+                        }
+                        if(hyperionHealth.data.health[1].service_data.chain_id !== process.env.CHAIN_ID_HEX) {
+                            this.errors.push('Wrong chain ID for Nodeos: ' + hyperionHealth.data.health[1].service_data.chain_id );
                         }
                     }
                 }
@@ -70,7 +68,7 @@ export default class Endpoints extends Task {
             if(this.errors.length === 0 && endpoints[i] !== "https://telos.caleos.io/v2"){
                 try {
                     let EVMTransactionEndpointHealth = await axios.get(endpoints[i] + "/evm/get_transactions?limit=10&skip=0&sort=desc");
-                    if (EVMTransactionEndpointHealth.status != 200) {
+                    if (EVMTransactionEndpointHealth.status !== 200) {
                         this.errors.push("Call to /evm/get_transactions?limit=10&skip=0&sort=desc ended in HTTP " + EVMTransactionEndpointHealth.status);
                     }
                 } catch (e) {
@@ -102,13 +100,12 @@ export default class Endpoints extends Task {
     async checkEVMRPCEndpointsAvailability() {
         const endpoints = process.env.RPC_EVM_ENDPOINTS.split(',');
         for(var i = 0; i < endpoints.length; i++){
-            let healthy = true;
             this.errors = [];
             this.task_name = endpoints[i].replace('https://', '');
             let provider = new ethers.providers.JsonRpcProvider(endpoints[i]);
             try {
                 let network = await provider.getNetwork();
-                if(provider == null || provider._isProvider == false || network == null){
+                if(provider === null || provider._isProvider === false || network === null){
                     this.errors.push("Could not reach RPC endpoint");
                     console.log("Provider error");
                 } else {

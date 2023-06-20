@@ -12,7 +12,6 @@ class TelosDistribute extends Contract {
         this.min_timestamp.setMinutes(this.min_timestamp.getMinutes() - MINUTES);
     }
     async findPayAction(actions){
-        let found = false;
         for(var i = 0; i < actions.length; i++){
             let timestamp = new Date(actions[i].timestamp);
             if(actions[i].act.name === 'pay' && timestamp.getTime() > this.min_timestamp.getTime()){
@@ -48,7 +47,11 @@ class TelosDistribute extends Contract {
                 this.end();
             }, 3000);
         } catch (e) {
-            this.errors.push(e.message);
+            if(e.message.endsWith('No payouts are due')){
+                this.infos.push(e.message);
+            } else {
+                this.errors.push(e.message);
+            }
             await this.save();
             this.end();
         }

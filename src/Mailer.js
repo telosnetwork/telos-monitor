@@ -1,13 +1,27 @@
 import fs from 'fs';
 import dotenv from 'dotenv/config';
-import AWS from 'aws-sdk';
+import { SES } from "@aws-sdk/client-ses";
+import axios from 'axios';
 
 const EMAIL_LIST = process.env.EMAIL_JSON;
 
 export default class Mailer {
     constructor(){
-        AWS.config.update({region: 'us-east-1'});
-        this.sdk = new AWS.SES({apiVersion: '2010-12-01'});
+        this.sdk = new SES({region: 'us-east-1', apiVersion: '2010-12-01'});
+    }
+    async sendTelegramMessage(message){
+        if(parseInt(process.env.CHAIN_ID) !== 40) return;
+        var token = process.env.TELEGRAM_TOKEN;
+        if(!token) return;
+        var chat_id = process.env.TELEGRAM_CHAT_ID;
+        var url = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${message}&parse_mode=html&disable_web_page_preview=true`;
+        return await axios.get(url).then((response) => {
+            console.log('Sent alert to Telegram');
+            return true;
+        }).catch((error) => {
+            console.log(error);
+            return false;
+        });
     }
     formatStatuses(statuses, html, title){
         if(statuses.length){
@@ -27,7 +41,6 @@ export default class Mailer {
         errors.concat(alerts).concat(infos).forEach((status) => {
             message += status + "\n";    
         });
-        console.log(this.formatHTMLMessage(task, html, cat));
         return {
             Destination: {
                 ToAddresses: emails
@@ -58,6 +71,13 @@ export default class Mailer {
     }
     async notify(task, cat, errors, alerts, infos){
         if(errors.length === 0) return;
+        try {
+            if(await this.sendTelegramMessage("<b>Error(s) for " + cat + " " + task + ": </b>\n" + errors.join("\n") + "\n\n<a href='" + process.env.DASHBOARD_URL + "'>Visit Telos Monitoring</a>")){
+               return;
+            }
+        } catch (error) {
+            console.log('Telegram error: ', error, '. Sending message via email instead...');
+        }
         const emails = this.getEmails(task);
         if(emails.length === 0){
             console.log('No subscribed emails found');

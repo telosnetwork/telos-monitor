@@ -11,7 +11,7 @@ const signatureProvider = new JsSignatureProvider([process.env.PRIVATE_KEY]);
 
 export default class Contract extends Task {
     constructor(task_name){
-        super(task_name, 'contracts');
+        super(task_name, 'contract');
         this.hyperion_endpoint = process.env.HYPERION_ENDPOINT;
         let rpc = new JsonRpc(process.env.RPC_ENDPOINT, { fetch });
         this.api = new Api({
@@ -53,6 +53,10 @@ export default class Contract extends Task {
         }
     }
     checkAccountLimits(account, min_free){
+        if(!account || !account.cpu_limit || !account.ram_quota) {
+            this.errors.push("Account not found");
+            return;
+        };
         this.checkRAM(account, min_free)
         this.checkCPU(account, min_free)
         this.checkNET(account, min_free)

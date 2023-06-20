@@ -11,7 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "@telosnetwork/telosevm-js": "^0.2.8",
-    "aws-sdk": "^2.1184.0",
+    "@aws-sdk/client-ses": "^3",
     "axios": "^0.27.2",
     "child_process": "^1.0.2",
     "crypto": "^1.0.1",

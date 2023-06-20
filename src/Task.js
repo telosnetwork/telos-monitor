@@ -3,10 +3,10 @@ import dotenv from 'dotenv/config';
 import pkg from 'pg';
 const { Pool } = pkg;
 const STATUS_TYPES = {
-	SUCCESS: 0,
-	INFO: 1,
-	ALERT: 2,
-	ERROR: 3,
+	SUCCESS: 1,
+	INFO: 2,
+	ALERT: 3,
+	ERROR: 4,
 }
 
 export default class Task {
@@ -88,7 +88,7 @@ export default class Task {
     async notify(task_id){
         if(this.mailer === false) return;
         const last_task = await this.pool.query(
-            "SELECT * FROM task_status WHERE task = $1 AND type = $2 AND checked_at > now() - interval '3 minutes'  ORDER BY id DESC LIMIT 2",
+            "SELECT * FROM task_status WHERE task = $1 AND type = $2 AND checked_at > now() - interval '48 hours'  ORDER BY id DESC LIMIT 2",
             [task_id, STATUS_TYPES.ERROR]
         );    
         if(last_task.rowCount === 1){
