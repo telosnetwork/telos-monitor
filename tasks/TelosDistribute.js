@@ -13,9 +13,10 @@ class TelosDistribute extends Contract {
     }
     async findPayAction(actions){
         for(var i = 0; i < actions.length; i++){
-            let timestamp = new Date(actions[i].timestamp);
-            if(actions[i].act.name === 'pay' && timestamp.getTime() > this.min_timestamp.getTime()){
-                await this.save(); // PAY FOUND
+            let timestamp = new Date(actions[i].timestamp + 'Z');
+            if(actions[i].act.name === 'pay' && timestamp.toISOString() > this.min_timestamp.toISOString()){
+                 // PAY FOUND END TASK HERE
+                await this.save();
                 this.end();
                 return true;
             }
@@ -24,24 +25,24 @@ class TelosDistribute extends Contract {
     }
     async run(){
         try {
-            const response = await axios.get(this.hyperion_endpoint + "/history/get_actions?account="+ACCOUNT+"&limit=20");
+            const response = await axios.get(this.hyperion_endpoint + "/history/get_actions?account="+ACCOUNT+"&limit=20&sort=desc&skip=0");
             if(!await this.findPayAction(response.data.actions)){
-                // IF PAY WASN'T FOUND TRIGGER PAY OURSELVES
-                await this.sendActions([{
+                // IF PAY WASN'T FOUND, TRIGGER PAY OURSELVES
+                const response = await this.sendActions([{
                     account: ACCOUNT,
                     name: 'pay',
                     authorization: [{ actor: process.env.TSK_RNG_ORACLE_CONSUMER, permission: 'active' }],
                     data: {},
                 }]);
-
+                console.log(response);
                 // TIMEOUT FOR HYPERION TO CATCH UP
                 setTimeout(async () => {
                     try {
-                        const response_timed = await axios.get(this.hyperion_endpoint + "/history/get_actions?account="+ACCOUNT+"&limit=20");
-                        await this.findPayAction(response_timed.data.actions);
-                        this.errors.push("Was not able to pay, action not found");
+                        const response_timed = await axios.get(this.hyperion_endpoint + "/history/get_actions?account="+ACCOUNT+"&limit=20&sort=desc&skip=0");
+                        if(!await this.findPayAction(response_timed.data.actions)){
+                            this.errors.push("Was not able to pay, action not found in history");
+                        }
                     } catch (e) {
-                        console.log(e.message);
                         this.errors.push(e.message);
                     }
                     await this.save();
@@ -49,7 +50,6 @@ class TelosDistribute extends Contract {
                 }, 4000);
             }
         } catch (e) {
-            console.log(e.message);
             this.errors.push(e.message);
             await this.save();
             this.end();
