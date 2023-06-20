@@ -1,6 +1,6 @@
 # Telos Monitor
 
-This project runs tasks on the Telos Network contracts, services & endpoints and notifies alerts subscribers by email
+This project runs tasks on the Telos Network contracts, services & endpoints and notifies of errors using a Telegram bot or fallback emails.
 It is the backend of the monitoring system, meant to be run with POSTGREST API and [telos-monitor-dashboard](https://github.com/telosnetwork/telos-monitor-dashboard) project for the frontend.
 
 You can find the testnet dashboard [hosted here](https://monitor-test.telos.net/#/)
@@ -14,7 +14,7 @@ This repository uses NodeJS 14+
 ## Installation
 
 1. Run `npm install` from the project root directory
-2. Rename `.env.sample` to `.env` and customize accordingly
+2. Rename `.env.sample` to `.env` and customize accordingly (be sure to fill fields like PRIVATE_KEY & database which are required)
 3. Rename `emails-to-notify.json.sample` to `emails-to-notify.json` and customize accordingly
 4. Navigate to `contracts/native` and deploy the helper contracts using cleos, put the private key to the deployment account in the .env file under `PRIVATE_KEY`
 
