@@ -2,16 +2,18 @@ import Mailer from './Mailer.js';
 import dotenv from 'dotenv/config';
 import pkg from 'pg';
 const { Pool } = pkg;
-const ERROR_TYPES = {
-	INFO: 0,
-	ALERT: 1,
-	ERROR: 2,
+const STATUS_TYPES = {
+	SUCCESS: 0,
+	INFO: 1,
+	ALERT: 2,
+	ERROR: 3,
 }
 
 export default class Task {
     constructor(task_name, cat_name){
         this.errors = [];
-	this.alerts = [];
+	    this.alerts = [];
+	    this.infos = [];
         this.mailer = (parseInt(process.env.NOTIFICATIONS) == true) ? new Mailer() : false;
         this.task_name = task_name;
         this.cat_name = cat_name;
@@ -50,7 +52,7 @@ export default class Task {
             "SELECT * FROM task_categories WHERE name = $1",
             [cat_name]
         );
-        if(cat.rowCount == 0){
+        if(cat.rowCount === 0){
             cat = await this.pool.query(
                 "INSERT INTO task_categories (name) VALUES ($1) RETURNING id",
                 [cat_name]
@@ -61,7 +63,7 @@ export default class Task {
             "SELECT * FROM tasks WHERE name = $1",
             [task_name]
         );
-        if(res.rowCount == 0){
+        if(res.rowCount === 0){
             res = await this.pool.query(
                 "INSERT INTO tasks (name, category) VALUES ($1, $2) RETURNING id",
                 [task_name, cat_id]
@@ -70,46 +72,57 @@ export default class Task {
 
         return res.rows[0].id;
     }
-    async insertTaskStatuses(errors, message, type){
-        for(var i = 0; i< errors.length; i++){
-            message += errors[i] + ",";
+    async insertTaskStatuses(task_id, errors, type){
+        for(var i = 0; i < errors.length; i++){
             let error = errors[i].substring(0, 255);
-            await this.pool.query(
-                "INSERT INTO task_status (task, message, type) VALUES ($1, $2, $3)",
-                [task_id, error, type]
-            );
+            try {
+                await this.pool.query(
+                    "INSERT INTO task_status (task, message, type) VALUES ($1, $2, $3)",
+                    [task_id, error, type]
+                );
+            } catch(e) {
+                console.log(e);
+            }
         }
-        return message;
+    }
+    async notify(task_id){
+        if(this.mailer === false) return;
+        const last_task = await this.pool.query(
+            "SELECT * FROM task_status WHERE task = $1 AND type = $2 AND checked_at > now() - interval '30 minutes'  ORDER BY id DESC LIMIT 2",
+            [task_id, STATUS_TYPES.ERROR]
+        );    
+        if(last_task.rowCount === 1){
+            console.log('Notification');
+            return await this.mailer.notify(this.task_name, this.cat_name, this.errors, this.alerts, this.infos);
+        } else {
+            let exists = true;
+            for(const row of last_task.rows){
+                if(this.errors.includes(row.message) === false){
+                    exists = false;
+                }
+            }
+            if(exists === false){
+                console.log('Notification 2');
+                return await this.mailer.notify(this.task_name, this.cat_name, this.errors, this.alerts, this.infos);
+            }
+        }
+        console.log('Notification would be redundant. Skipping....');
     }
     async save(){
         console.log('Saving', this.task_name)
-        if(this.task_name == null) throw "Task name cannot be null";
+        if(this.task_name === null) throw "Task name cannot be null";
         const task_id = await this.getOrCreate(this.task_name, this.cat_name);
-
-        const last_task = await this.pool.query(
-            "SELECT * FROM task_status WHERE task = $1  ORDER BY id DESC LIMIT 1",
-            [task_id]
-        );
-        if(this.errors.length == 0 && this.alerts.length == 0){
+        if(this.errors.length === 0 && this.alerts.length === 0){
             await this.pool.query(
-                "INSERT INTO task_status (task, message) VALUES ($1, $2)",
-                [task_id, ""]
+                "INSERT INTO task_status (task, message, type) VALUES ($1, $2, $3)",
+                [task_id, "", STATUS_TYPES.SUCCESS]
             );
         } else {
-            let message = '';
-            if (this.alerts.length > 0){
-                message = this.insertTaskStatuses(this.alerts, message, ERROR_TYPES.ALERT);
-            }
+            await this.insertTaskStatuses(task_id, this.errors, STATUS_TYPES.ERROR);
+            await this.insertTaskStatuses(task_id, this.alerts, STATUS_TYPES.ALERT);
+            await this.insertTaskStatuses(task_id, this.infos, STATUS_TYPES.INFO);
             if (this.errors.length > 0){
-                message = this.insertTaskStatuses(this.errors, message, ERROR_TYPES.ERROR);
-            }
-            message = message.slice(0, -1);
-            // TODO: Check last notifications to not send it multiple times...
-            // Only send on error not alerts
-            if(this.errors.length > 0 && this.mailer && last_task.rowCount === 0){
-                await this.mailer.notify(this.task_name, this.cat_name, message);
-            } else {
-                console.log('... Notification would be redundant')
+                await this.notify(task_id);
             }
         }
         return;

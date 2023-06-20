@@ -9,7 +9,21 @@ export default class Mailer {
         AWS.config.update({region: 'us-east-1'});
         this.sdk = new AWS.SES({apiVersion: '2010-12-01'});
     }
-    getParams(emails, task, message, cat){
+    formatStatuses(statuses, html){
+        if(statuses.length){
+            html += "<br /><h2 style='text-align:left;'>Errors</h2><ul style='text-align:left;'>";
+            for(let i = 0; i < statuses.length; i++){
+                html += "<li>"+statuses[i]+"</li>";
+            }
+            html += "</ul>";
+        }
+        return html;
+    }
+    getParams(emails, task, errors, alerts, infos, cat){
+        let html = this.formatStatuses(errors, "");
+        html = this.formatStatuses(alerts, html);
+        html = this.formatStatuses(infos, html);
+        console.log(this.formatHTMLMessage(task, html, cat));
         return {
             Destination: {
                 ToAddresses: emails
@@ -18,7 +32,7 @@ export default class Mailer {
                 Body: {
                     Html: {
                         Charset: "UTF-8",
-                        Data: this.formatHTMLMessage(task, message, cat)
+                        Data: this.formatHTMLMessage(task, html, cat)
                     },
                     Text: {
                         Charset: "UTF-8",
@@ -38,14 +52,14 @@ export default class Mailer {
         var date = new Date();
         return "<!DOCTYPE html><html><body><h1 style='text-align:left;'>Alert for "+ task +" !</h1><div style='margin-top:50px;text-align: left;'><p>An alert for task <b>"+task+"</b> on "+ process.env.CHAIN.toLowerCase() +" was saved...</p><table cellspacing='0' cellpadding='0' style='text-align: left;'><tr><th style='padding-right: 20px;'>Date</th><td>"+ date.toUTCString() +"</td></tr><tr><th style='padding-right: 20px;'>Chain</th><td>"+ process.env.CHAIN.toLowerCase() +"</td></tr><tr><th style='padding-right: 20px;'>Category</th><td>"+ cat +"</td></tr><tr><th>Task</th><td>" + task+ "</td></tr><tr><th style='padding-right: 20px;'>Message</th><td>"+message+"</td></tr></table></div><p style='margin-top:20px;'><a href='"+ process.env.DASHBOARD_URL +"' target='_blank'>Visit Telos Monitoring</a></p><small style='margin-top:60px;display:block;'>To unsubscribe from this mailing list please edit <a href='https://github.com/telosnetwork/telos-monitor/blob/master/emails-to-notify.json' target='_blank'>this file</a> and submit a PR. </small> </body></html>"
     }
-    async notify(task, cat, message){
-        if(message == "") return;
+    async notify(task, cat, errors, alerts, infos){
+        if(errors.length === 0) return;
         const emails = this.getEmails(task);
-        if(emails.length == 0){
+        if(emails.length === 0){
             console.log('No subscribed emails found');
             return;
         }
-        await this.sendEmail(this.getParams(emails, task, message, cat));
+        await this.sendEmail(this.getParams(emails, task, errors, alerts, infos, cat));
         return;
     }
     getEmails(task){
