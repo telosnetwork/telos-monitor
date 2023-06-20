@@ -88,7 +88,7 @@ export default class Task {
         }
     }
     async notify(task_id){
-        if(this.mailer === false) return;
+        if(this.mailer === false || process.env.NOTIFICATIONS !== '1') return;
         const errors = this.errors.map((error) => { return error.substr(0, 255)});
         const last_tasks = await this.pool.query(
             "SELECT * FROM task_status WHERE task = $1 AND type = $2 AND checked_at > now() - interval '48 hours' AND checked_at < now() - interval '2 minutes' AND message IN ($3) ORDER BY id DESC LIMIT 2",
@@ -105,7 +105,7 @@ export default class Task {
             console.log('Notification');
             return await this.mailer.notify(this.task_name, this.cat_name, this.errors, this.alerts, this.infos);
         } 
-        console.log('Notification would be redundant. Skipping.... Errors: ', errors.length + ',', 'Alerts: ', this.alerts.length + ',', 'Infos: ', this.infos.length);
+        console.log('Notification would be redundant. Skipping.... Errors:', errors.length + ',', 'Alerts:', this.alerts.length + ',', 'Infos:', this.infos.length);
     }
     async save(){
         console.log('Saving', this.task_name)
