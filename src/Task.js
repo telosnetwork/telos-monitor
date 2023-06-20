@@ -88,7 +88,7 @@ export default class Task {
     async notify(task_id){
         if(this.mailer === false) return;
         const last_task = await this.pool.query(
-            "SELECT * FROM task_status WHERE task = $1 AND type = $2 AND checked_at > now() - interval '30 minutes'  ORDER BY id DESC LIMIT 2",
+            "SELECT * FROM task_status WHERE task = $1 AND type = $2 AND checked_at > now() - interval '3 minutes'  ORDER BY id DESC LIMIT 2",
             [task_id, STATUS_TYPES.ERROR]
         );    
         if(last_task.rowCount === 1){

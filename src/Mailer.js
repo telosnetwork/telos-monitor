@@ -9,9 +9,9 @@ export default class Mailer {
         AWS.config.update({region: 'us-east-1'});
         this.sdk = new AWS.SES({apiVersion: '2010-12-01'});
     }
-    formatStatuses(statuses, html){
+    formatStatuses(statuses, html, title){
         if(statuses.length){
-            html += "<br /><h2 style='text-align:left;'>Errors</h2><ul style='text-align:left;'>";
+            html += "<h4 style='margin: 0px;'>" + title +"</h4><ul>";
             for(let i = 0; i < statuses.length; i++){
                 html += "<li>"+statuses[i]+"</li>";
             }
@@ -20,9 +20,13 @@ export default class Mailer {
         return html;
     }
     getParams(emails, task, errors, alerts, infos, cat){
-        let html = this.formatStatuses(errors, "");
-        html = this.formatStatuses(alerts, html);
-        html = this.formatStatuses(infos, html);
+        let message = "\n\n";
+        let html = this.formatStatuses(errors, "", "Errors");
+        html = this.formatStatuses(alerts, html, "Alerts");
+        html = this.formatStatuses(infos, html, "Infos");
+        errors.concat(alerts).concat(infos).forEach((status) => {
+            message += status + "\n";    
+        });
         console.log(this.formatHTMLMessage(task, html, cat));
         return {
             Destination: {
@@ -48,9 +52,9 @@ export default class Mailer {
             ReplyToAddresses: [],
         };
     }
-    formatHTMLMessage(task, message, cat){
+    formatHTMLMessage(task, html, cat){
         var date = new Date();
-        return "<!DOCTYPE html><html><body><h1 style='text-align:left;'>Alert for "+ task +" !</h1><div style='margin-top:50px;text-align: left;'><p>An alert for task <b>"+task+"</b> on "+ process.env.CHAIN.toLowerCase() +" was saved...</p><table cellspacing='0' cellpadding='0' style='text-align: left;'><tr><th style='padding-right: 20px;'>Date</th><td>"+ date.toUTCString() +"</td></tr><tr><th style='padding-right: 20px;'>Chain</th><td>"+ process.env.CHAIN.toLowerCase() +"</td></tr><tr><th style='padding-right: 20px;'>Category</th><td>"+ cat +"</td></tr><tr><th>Task</th><td>" + task+ "</td></tr><tr><th style='padding-right: 20px;'>Message</th><td>"+message+"</td></tr></table></div><p style='margin-top:20px;'><a href='"+ process.env.DASHBOARD_URL +"' target='_blank'>Visit Telos Monitoring</a></p><small style='margin-top:60px;display:block;'>To unsubscribe from this mailing list please edit <a href='https://github.com/telosnetwork/telos-monitor/blob/master/emails-to-notify.json' target='_blank'>this file</a> and submit a PR. </small> </body></html>"
+        return "<!DOCTYPE html><html><body style='text-align:left;'><h1>Alert for "+ task +" !</h1><div style='margin-top:50px;'><p>An alert for task <b>"+task+"</b> on "+ process.env.CHAIN.toLowerCase() +" was saved...</p><table cellspacing='0' cellpadding='0' style='text-align: left;'><tr><th style='padding-right: 20px;'>Date</th><td>"+ date.toUTCString() +"</td></tr><tr><th style='padding-right: 20px;'>Chain</th><td>"+ process.env.CHAIN.toLowerCase() +"</td></tr><tr><th style='padding-right: 20px;'>Category</th><td>"+ cat +"</td></tr><tr><th>Task</th><td>" + task+ "</td></tr><tr><th></th><td><br /></td></tr><tr><th style='padding-right: 20px; vertical-align: top;'>Statuses</th><td style='vertical-align: top;'>"+html+"</td></tr></table></div><p style='margin-top:20px;'><a href='"+ process.env.DASHBOARD_URL +"' target='_blank'>Visit Telos Monitoring</a></p><small style='margin-top:60px;display:block;'>To unsubscribe from this mailing list please edit <a href='https://github.com/telosnetwork/telos-monitor/blob/master/emails-to-notify.json' target='_blank'>this file</a> and submit a PR. </small> </body></html>"
     }
     async notify(task, cat, errors, alerts, infos){
         if(errors.length === 0) return;
