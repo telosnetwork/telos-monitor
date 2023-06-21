@@ -15,6 +15,7 @@ This repository uses NodeJS 14+
 
 1. Run `npm install` from the project root directory
 2. Rename `.env.sample` to `.env` and customize accordingly (be sure to fill fields like PRIVATE_KEY & database which are required)
+3. Rename `database.conf.sample` to `database.conf` and customize accordingly
 3. Rename `emails-to-notify.json.sample` to `emails-to-notify.json` and customize accordingly
 4. Navigate to `contracts/native` and deploy the helper contracts using cleos, put the private key to the deployment account in the .env file under `PRIVATE_KEY`
 
@@ -22,9 +23,13 @@ This repository uses NodeJS 14+
 
 Use `node index.js` from the project root directory
 
-## Cron
+## Monitor Cron
 
-Use PM2 with `pm2 start index.js --cron "*/30 * * * *" --no-autorestart` from the project root directory to set it up as a 30 minutes cron job
+Use PM2 with `pm2 start ecosystem.config.cjs` from the project root directory to set it up as a 30 minutes cron job (editable in `ecosystem.config.cjs`)
+
+## Monitor API
+
+For the API we use postgrest. To launch it you can use the command `postgrest database.conf` after installing postgrest on your machine. Make sure the configuration in `database.conf` is correct and contains a read only user.
 
 ## Add task
 
