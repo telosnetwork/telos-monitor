@@ -45,7 +45,7 @@ this.alerts.push('My alert message');
 this.infos.push('My info message');
 ```
 
-Messages above 255 characters will be truncated but you can push as many errors as you want.
+Messages above 255 characters will be truncated but you can push as many as you want.
 
 Use the `save()` method to save the current task errors, or lack thereof, and the `end()` method to stop the task and call the next one.
 
