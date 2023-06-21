@@ -40,11 +40,13 @@ You will need to create a new `MyTask` class that extends the generic `Task` cla
 Add errors, alerts & infos by pushing strings and integers to that parent class' `errors`, `alerts` or `infos` arrays, ie:
 
 ```
-this.errors.push('My error message')
-this.alerts.push('My alert message')
-this.infos.push('My info message')
+this.errors.push('My error message');
+this.alerts.push('My alert message');
+this.infos.push('My info message');
 ```
 
-Error messages above 255 characters will be truncated but you can push as many errors as you want.
+Messages above 255 characters will be truncated but you can push as many errors as you want.
 
-Use the `save()` method to save the current task errors, or lack thereof, and the `end()` method to stop the task and call the next one
+Use the `save()` method to save the current task errors, or lack thereof, and the `end()` method to stop the task and call the next one.
+
+Notifications will only be sent for errors (along with alerts & infos for that errored task)
