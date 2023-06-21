@@ -25,7 +25,7 @@ Use `node index.js` from the project root directory
 
 ## Monitor Cron
 
-Use PM2 with `pm2 start ecosystem.config.cjs` from the project root directory to set it up as a 30 minutes cron job (editable in `ecosystem.config.cjs`)
+Use PM2 with `pm2 start index.js --cron "*/30 * * * *" --no-autorestart --name "monitor-mainnet"` from the project root directory to set it up as a 30 minutes cron job
 
 ## Monitor API
 
