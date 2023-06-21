@@ -16,8 +16,8 @@ This repository uses NodeJS 14+
 1. Run `npm install` from the project root directory
 2. Rename `.env.sample` to `.env` and customize accordingly (be sure to fill fields like PRIVATE_KEY & database which are required)
 3. Rename `database.conf.sample` to `database.conf` and customize accordingly
-3. Rename `emails-to-notify.json.sample` to `emails-to-notify.json` and customize accordingly
-4. Navigate to `contracts/native` and deploy the helper contracts using cleos, put the private key to the deployment account in the .env file under `PRIVATE_KEY`
+4. Rename `emails-to-notify.json.sample` to `emails-to-notify.json` and customize accordingly
+5. Navigate to `contracts/native` and deploy the helper contracts using cleos, put the private key to the deployment account in the .env file under `PRIVATE_KEY`
 
 ## Run
 
@@ -35,11 +35,15 @@ For the API we use postgrest. To launch it you can use the command `postgrest da
 
 Add a task to the `tasks` directory to add a new task. Use existing tasks as examples.
 
-You will need to create a new `MyTask` class that extends the `Task`, `Contract` or `HTTPService` class.
+You will need to create a new `MyTask` class that extends the generic `Task` class, or more specific classes like `Contract` or `HTTPService` according to your needs.
 
-Add errors by pushing strings and integers to that parent class' `errors` array, ie:
+Add errors, alerts & infos by pushing strings and integers to that parent class' `errors`, `alerts` or `infos` arrays, ie:
 
-`this.errors.push('My error message')`
+```
+this.errors.push('My error message')
+this.alerts.push('My alert message')
+this.infos.push('My info message')
+```
 
 Error messages above 255 characters will be truncated but you can push as many errors as you want.
 
