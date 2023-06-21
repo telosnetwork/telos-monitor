@@ -34,7 +34,6 @@ class TelosDistribute extends Contract {
                     authorization: [{ actor: process.env.TSK_RNG_ORACLE_CONSUMER, permission: 'active' }],
                     data: {},
                 }]);
-                console.log(response);
                 // TIMEOUT FOR HYPERION TO CATCH UP
                 setTimeout(async () => {
                     try {

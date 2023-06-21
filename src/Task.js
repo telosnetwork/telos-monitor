@@ -30,6 +30,11 @@ export default class Task {
         let code = (this.errors.length) ? 99 : 0;
         process.exit(this.errors.length);
     }
+    clear(){
+        this.errors = [];
+        this.alerts = [];
+        this.infos = [];
+    }
     async sendActions(actions) {
         if(!this.api) throw "API not set";
         try {

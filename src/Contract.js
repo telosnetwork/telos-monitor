@@ -20,6 +20,7 @@ export default class Contract extends Task {
             textDecoder: new TextDecoder(),
             textEncoder: new TextEncoder()
         });
+        this.clear();
         this.rpc = rpc;
     }
     async getNativeAccount(account){

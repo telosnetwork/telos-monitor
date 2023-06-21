@@ -1,0 +1,4 @@
+db-uri = ""
+db-schemas = "public"
+db-anon-role = "web_anon"
+server-port = "5040"

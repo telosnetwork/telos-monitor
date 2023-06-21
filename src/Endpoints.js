@@ -27,7 +27,7 @@ export default class Endpoints extends Task {
     async checkHyperionEndpointsAvailability() {
         const endpoints = process.env.HYPERION_ENDPOINTS.split(',');
         for(var i = 0; i < endpoints.length; i++){
-            this.errors = [];
+            this.clear();
             this.task_name = endpoints[i].replace('https://', '');
             try {
                 let hyperionHealth = await axios.get(endpoints[i] + "/health");
@@ -44,13 +44,13 @@ export default class Endpoints extends Task {
                         if(!serviceMap.Elasticsearch.service_data.last_indexed_block >= (serviceMap.NodeosRPC.service_data.head_block_num - HYPERION_INDEX_MAX_BLOCKS_AGO)){
                            this.errors.push('ELK indexing has not caught up to head, last indexed block is ' + serviceMap.Elasticsearch.service_data.last_indexed_block);
                         }
-                        if(hyperionHealth.data.health[0].status !== "OK") {
+                        if(hyperionHealth.data.health[0].status === "Error") {
                             this.alerts.push('RabbitMQ health status is not OK');
                         }
-                        if(hyperionHealth.data.health[1].status !== "OK") {
+                        if(hyperionHealth.data.health[1].status === "Error") {
                             this.alerts.push('Nodeos health status is not OK');
                         }
-                        if(hyperionHealth.data.health[2].status !== "OK") {
+                        if(hyperionHealth.data.health[2].status === "Error") {
                             this.alerts.push('ELK health status is not OK');
                         }
                         if(hyperionHealth.data.query_time_ms > HYPERION_QUERY_MAX_MS) {
@@ -82,7 +82,7 @@ export default class Endpoints extends Task {
     }
     async checkEVMIndexer() {
         const endpoint = process.env.RPC_EVM_INDEXER;
-        this.errors = [];
+        this.clear();
         this.task_name = endpoint.replace('https://', '');
         await axios.get(endpoint + "/health").then((response) => {
             if(!response.data?.success){
@@ -100,7 +100,7 @@ export default class Endpoints extends Task {
     async checkEVMRPCEndpointsAvailability() {
         const endpoints = process.env.RPC_EVM_ENDPOINTS.split(',');
         for(var i = 0; i < endpoints.length; i++){
-            this.errors = [];
+            this.clear();
             this.task_name = endpoints[i].replace('https://', '');
             let provider = new ethers.providers.JsonRpcProvider(endpoints[i]);
             try {
@@ -132,7 +132,7 @@ export default class Endpoints extends Task {
         let highest_rpc_block = info.head_block_num;
         for(let i = 0; i < endpoints.length; i++){
             let healthy = true;
-            this.errors = [];
+            this.clear();
             this.task_name = endpoints[i].replace('https://', '');
             let rpc = new JsonRpc(endpoints[i], { fetch });
             try {

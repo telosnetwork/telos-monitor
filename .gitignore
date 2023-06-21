@@ -1,12 +1,5 @@
-<<<<<<< HEAD
-node_modules
-package-lock.json
-.env
-.database.conf
-=======
 node_modules
 package-lock.json
 .env
 database.conf
 emails-to-notify.json
->>>>>>> 13599919f2d6f2de1f5308bf449195d467c2ad27

@@ -10,7 +10,7 @@ class TelosHTTPServices extends HTTPService {
     async run(){
         for(var i = 0;i<SERVICES.length;i++){
             this.task_name = SERVICES[i].replace('https://', '');
-            this.errors = [];
+            this.clear();
             try {
                 let reply = await this.get(SERVICES[i]);
                 if(reply.status != 200){
