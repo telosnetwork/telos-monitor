@@ -88,7 +88,7 @@ export default class Endpoints extends Task {
             if(!response.data?.success){
                 this.errors.push("EVM Indexer status is not OK");
             } else if(response.data.secondsBehind > (process.env.MAX_RPC_BLOCK_TRAIL * 2)){
-                this.errors.push("EVM Indexer is", response.data.secondsBehind, "seconds behind");
+                this.errors.push("EVM Indexer is " + response.data.secondsBehind + " seconds behind");
             }
         }).catch((error) => {
             console.log(error.message);

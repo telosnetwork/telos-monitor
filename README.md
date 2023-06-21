@@ -19,7 +19,7 @@ This repository uses NodeJS 14+
 4. Rename `emails-to-notify.json.sample` to `emails-to-notify.json` and customize accordingly
 5. Navigate to `contracts/native` and deploy the helper contracts using cleos, put the private key to the deployment account in the .env file under `PRIVATE_KEY`
 
-### Postgres
+#### Postgres
 
 1. Run `bash runDockerPostgres.sh` from the project root directory if you do not have a postgres instance
 2. Use the `database.sql` file to create your database
