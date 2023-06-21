@@ -1,3 +1,9 @@
+// USERS & SCHEMAS
+CREATE USER telos_monitor WITH PASSWORD 'password';
+CREATE DATABASE telos_monitor_mainnet WITH OWNER = telos_monitor;
+
+// TABLES
+
 CREATE TABLE task_categories (id SERIAL PRIMARY KEY, name VARCHAR(125));
 CREATE TABLE tasks (id SERIAL PRIMARY KEY, name VARCHAR(255), category INT NOT NULL, FOREIGN KEY(category) REFERENCES task_categories(id));
 CREATE TABLE task_status_type(id SERIAL PRIMARY KEY, name VARCHAR(125));
