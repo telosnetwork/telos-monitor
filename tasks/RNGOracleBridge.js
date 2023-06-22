@@ -2,11 +2,12 @@ import Contract from "../src/Contract.js";
 import dotenv from "dotenv/config";
 import ethers from "ethers";
 
+const ACCOUNT = 'rng.bridge';
 const MIN = parseInt(process.env.TSK_RNG_BRIDGE_MIN_BALANCE);
 
 class RNGOracleBridge extends Contract {
     constructor(){
-        super('rng.bridge');
+        super(ACCOUNT);
         this.provider = new ethers.providers.JsonRpcProvider(process.env.RPC_EVM_ENDPOINT);
     }
     async getBalance(address, name){
@@ -28,7 +29,8 @@ class RNGOracleBridge extends Contract {
         if(evmBalance){
             const rngBridgeBalance = await this.getBalance(process.env.TSK_RNG_BRIDGE_NATIVE_EVM_ADDRESS, 'Native contract EVM address');
             if(rngBridgeBalance){
-                this.checkAccountLimits('rng.bridge', process.env.TSK_RNG_BRIDGE_MIN_RESSOURCE);
+                const account = await this.getNativeAccount(ACCOUNT);
+                this.checkAccountLimits(account, process.env.TSK_RNG_BRIDGE_MIN_RESSOURCE);
             }
         }
         await this.save();
