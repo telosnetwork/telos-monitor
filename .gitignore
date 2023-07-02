@@ -3,3 +3,6 @@ package-lock.json
 .env
 database.conf
 emails-to-notify.json
+
+monitor-mainnet-error.log
+monitor-mainnet-out.log
