@@ -35,6 +35,17 @@ export default class Task {
         this.alerts = [];
         this.infos = [];
     }
+    handleFailure(message){
+        if(
+            message.indexOf('expired transaction') > -1 ||
+            message.indexOf('No payouts are due') > -1 ||
+            message.indexOf('transaction was executing for too long') > -1
+        ) {
+            this.alerts.push("Error sending action: " + e.message)
+            return;
+        }
+        this.errors.push("Error sending action: " + e.message)
+    }
     async sendActions(actions) {
         if(!this.api) throw "API not set";
         try {
@@ -46,8 +57,7 @@ export default class Task {
                 return false;
             }
         } catch (e) {
-            if(e.message.indexOf('No payouts are due') > -1) return false;
-            this.errors.push("Error sending action: " + e.message)
+            this.handleFailure(e.message);
             await this.save();
             this.end();
             return false;
