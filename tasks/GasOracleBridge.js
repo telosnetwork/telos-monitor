@@ -3,10 +3,11 @@ import dotenv from "dotenv/config";
 import ethers from "ethers";
 
 const MIN = parseInt(process.env.TSK_GAS_BRIDGE_MIN_BALANCE);
+const ACCOUNT = 'gasbridge';
 
 class GasOracleBridge extends Contract {
     constructor(){
-        super('gasbridge');
+        super(ACCOUNT);
         this.provider = new ethers.providers.JsonRpcProvider(process.env.RPC_EVM_ENDPOINT);
     }
     async getBalance(address, name){
@@ -28,7 +29,8 @@ class GasOracleBridge extends Contract {
         if(evmBalance){
             const bridgeBalance = await this.getBalance(process.env.TSK_GAS_BRIDGE_NATIVE_EVM_ADDRESS, 'Native contract EVM address');
             if(bridgeBalance){
-                this.checkAccountLimits('gasbridge', process.env.TSK_GAS_BRIDGE_MIN_RESSOURCE);
+                const account = await this.getNativeAccount(ACCOUNT);
+                this.checkAccountLimits(account, process.env.TSK_GAS_BRIDGE_MIN_RESSOURCE);
             }
         }
         await this.save();

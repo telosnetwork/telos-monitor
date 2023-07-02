@@ -42,7 +42,11 @@ class TelosDistribute extends Contract {
                             this.errors.push("Was not able to pay, action not found in history");
                         }
                     } catch (e) {
-                        this.errors.push(e.message);
+                        if(e.message.endsWith('configured max-transaction-time 30000us')){
+                            this.alerts.push(e.message);
+                        } else {
+                            this.errors.push(e.message);
+                        }
                     }
                     await this.save();
                     this.end();
