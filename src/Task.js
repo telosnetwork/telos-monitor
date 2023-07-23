@@ -1,4 +1,4 @@
-import Mailer from './Mailer.js';
+import Notifier from './Notifier.js';
 import dotenv from 'dotenv/config';
 import pkg from 'pg';
 const { Pool } = pkg;
@@ -14,7 +14,7 @@ export default class Task {
         this.errors = [];
 	    this.alerts = [];
 	    this.infos = [];
-        this.mailer = (parseInt(process.env.NOTIFICATIONS) == true) ? new Mailer() : false;
+        this.notifier = (parseInt(process.env.NOTIFICATIONS) == true) ? new Notifier() : false;
         this.task_name = task_name;
         this.cat_name = cat_name;
         this.check_interval = 1800;
@@ -103,7 +103,7 @@ export default class Task {
         }
     }
     async notify(task_id){
-        if(this.mailer === false || process.env.NOTIFICATIONS !== '1') return;
+        if(this.notifier === false || process.env.NOTIFICATIONS !== '1') return;
         const errors = this.errors.map((error) => { return error.substr(0, 255)});
         const last_tasks = await this.pool.query(
             "SELECT * FROM task_status WHERE task = $1 AND type = $2 AND checked_at > now() - interval '4 hours' AND checked_at < now() - interval '1 minute' AND message IN ($3) ORDER BY id DESC LIMIT 2",
@@ -118,7 +118,7 @@ export default class Task {
         })
         if(this.errors.length > 0){
             console.log('Notification');
-            return await this.mailer.notify(this.task_name, this.cat_name, this.errors, this.alerts, this.infos);
+            return await this.notifier.notify(this.task_name, this.cat_name, this.errors, this.alerts, this.infos);
         } 
         console.log('Notification would be redundant. Skipping.... Errors:', errors.length + ',', 'Alerts:', this.alerts.length + ',', 'Infos:', this.infos.length);
     }
