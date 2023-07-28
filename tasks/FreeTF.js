@@ -44,7 +44,7 @@ class FreeTF extends Contract {
             limit: 1,
         });
         if(whitelist_response.rows.length === 0){
-            this.errors.push("Whitelist: could not get number of accounts");
+            this.alerts.push("Whitelist: could not get number of accounts");
         } else if(ACCOUNT_WHITELIST.includes(KEY) && whitelist_response.rows[0].max_accounts - whitelist_response.rows[0].total_accounts < MIN_TF_ACCOUNTS) {
             this.errors.push("Whitelist: less than "+ MIN_TF_ACCOUNTS +" to maximum accounts for accounts.tf");
         }
@@ -56,7 +56,7 @@ class FreeTF extends Contract {
             scope: ACCOUNT,
         });
         if(conflist_response.rows.length == 0){
-            this.errors.push("Conflist: Could not get number of accounts");
+            this.alerts.push("Conflist: Could not get number of accounts");
         } else {
             for(var i = 0; i < conflist_response.rows.length; i++){
                 if(ACCOUNT_CONFLIST.includes(conflist_response.rows[i].account_name) && conflist_response.rows[i].total_accounts >= conflist_response.rows[i].max_accounts){
@@ -71,7 +71,7 @@ class FreeTF extends Contract {
         });
 
         if(whitelist_response.rows.length === 0){
-            this.errors.push("Whitelist: Could not get number of accounts");
+            this.alerts.push("Whitelist: Could not get number of accounts");
         } else {
             for(var i = 0; i < whitelist_response.rows.length; i++){
                 if(ACCOUNT_WHITELIST.includes(whitelist_response.rows[i].account_name) && whitelist_response.rows[i].total_accounts >= whitelist_response.rows[i].max_accounts){
