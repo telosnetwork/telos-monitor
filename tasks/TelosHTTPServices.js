@@ -8,13 +8,19 @@ class TelosHTTPServices extends HTTPService {
         super(null, "services");
     }
     async run(){
-        for(var i = 0;i<SERVICES.length;i++){
+        for(var i = 0; i < SERVICES.length;i++){
             this.task_name = SERVICES[i].replace('https://', '');
             this.clear();
             try {
                 let reply = await this.get(SERVICES[i]);
                 if(reply.status != 200){
-                    this.errors.push("Replied with HTTP status " + reply.status)
+                    let ctx = this;
+                    setTimeout(async function () {
+                        reply = await ctx.get(SERVICES[i]);
+                        if(reply.status != 200){
+                            this.errors.push("Replied with HTTP status " + reply.status);
+                        }
+                    }, 2000);
                 }
             } catch (e) {
                 this.errors.push(e.message);
