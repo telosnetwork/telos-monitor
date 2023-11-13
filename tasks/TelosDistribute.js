@@ -39,7 +39,7 @@ class TelosDistribute extends Contract {
                     try {
                         const response_timed = await axios.get(this.hyperion_endpoint + "/history/get_actions?account="+ACCOUNT+"&limit=20&sort=desc&skip=0");
                         if(!await this.findPayAction(response_timed.data.actions)){
-                            this.errors.push("Was not able to pay, action not found in history");
+                            this.alerts.push("Was not able to pay, action not found in history");
                         }
                     } catch (e) {
                         if(e.message.endsWith('configured max-transaction-time 30000us')){
@@ -50,7 +50,7 @@ class TelosDistribute extends Contract {
                     }
                     await this.save();
                     this.end();
-                }, 4000);
+                }, 5000);
             }
         } catch (e) {
             this.errors.push(e.message);
