@@ -1,5 +1,4 @@
 import Contract from "../src/Contract.js";
-import dotenv from 'dotenv/config';
 import axios from 'axios';
 
 const MINUTES = parseInt(process.env.TSK_TELOS_DISTRIBUTE_PAY_MN);
@@ -10,11 +9,13 @@ class TelosDistribute extends Contract {
         super(ACCOUNT);
         this.min_timestamp = new Date();
         this.min_timestamp.setMinutes(this.min_timestamp.getMinutes() - MINUTES);
+        this.double_timestamp = new Date();
+        this.double_timestamp.setMinutes(this.double_timestamp.getMinutes() - (MINUTES * 2));
     }
-    async findPayAction(actions){
+    async findPayAction(actions, timestamp){
         for(var i = 0; i < actions.length; i++){
-            let timestamp = new Date(actions[i].timestamp + 'Z'); // Force UTC flag
-            if(actions[i].act.name === 'pay' && timestamp.toISOString() > this.min_timestamp.toISOString()){
+            let action_timestamp = new Date(actions[i].timestamp + 'Z'); // Force UTC flag
+            if(actions[i].act.name === 'pay' && action_timestamp.toISOString() > timestamp.toISOString()){
                  // PAY FOUND END TASK HERE
                 await this.save();
                 this.end();
@@ -25,31 +26,16 @@ class TelosDistribute extends Contract {
     }
     async run(){
         try {
-            const response = await axios.get(this.hyperion_endpoint + "/history/get_actions?account="+ACCOUNT+"&limit=20&sort=desc&skip=0");
-            if(!await this.findPayAction(response.data.actions)){
-                // IF PAY WASN'T FOUND, TRIGGER PAY OURSELVES
-                const response = await this.sendActions([{
-                    account: ACCOUNT,
-                    name: 'pay',
-                    authorization: [{ actor: process.env.TSK_RNG_ORACLE_CONSUMER, permission: 'active' }],
-                    data: {},
-                }]);
-                // TIMEOUT FOR HYPERION TO CATCH UP
+            const response = await axios.get(this.hyperion_endpoint + "/history/get_actions?account="+ACCOUNT+"&limit=30&sort=desc&skip=0");
+            if(!await this.findPayAction(response.data.actions, this.min_timestamp)){
+                // TIMEOUT & TRY AGAIN
                 setTimeout(async () => {
-                    try {
-                        const response_timed = await axios.get(this.hyperion_endpoint + "/history/get_actions?account="+ACCOUNT+"&limit=20&sort=desc&skip=0");
-                        if(!await this.findPayAction(response_timed.data.actions)){
-                            this.alerts.push("Was not able to pay, action not found in history");
-                        }
-                    } catch (e) {
-                        if(e.message.endsWith('configured max-transaction-time 30000us')){
-                            this.alerts.push(e.message);
-                        } else {
-                            this.errors.push(e.message);
-                        }
+                    const response2 = await axios.get(this.hyperion_endpoint + "/history/get_actions?account="+ACCOUNT+"&limit=30&sort=desc&skip=0");
+                    if(!await this.findPayAction(response2.data.actions, this.double_timestamp)){
+                        this.errors.push('No pay found for at least ' + (MINUTES * 2) + " minutes");
+                    } else {
+                        this.alerts.push('Last pay not found');
                     }
-                    await this.save();
-                    this.end();
                 }, 5000);
             }
         } catch (e) {
