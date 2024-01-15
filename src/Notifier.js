@@ -14,7 +14,8 @@ export default class Mailer {
         var token = process.env.TELEGRAM_TOKEN;
         if(!token) return;
         var chat_id = process.env.TELEGRAM_CHAT_ID;
-        var url = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=\xE2\x9A\xA0%20${message}&parse_mode=html&disable_web_page_preview=true`;
+        var thread_id = process.env.TELEGRAM_THREAD_ID;
+        var url = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&message_thread_id=${thread_id}&text=\xE2\x9A\xA0%20${message}&parse_mode=html&disable_web_page_preview=true`;
         return await axios.get(url).then((response) => {
             console.log('Sent alert to Telegram');
             return true;
