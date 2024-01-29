@@ -15,7 +15,8 @@ export default class Mailer {
         if(!token) return;
         var chat_id = process.env.TELEGRAM_CHAT_ID;
         var thread_id = process.env.TELEGRAM_THREAD_ID;
-        var url = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&message_thread_id=${thread_id}&text=\xE2\x9A\xA0%20${message}&parse_mode=html&disable_web_page_preview=true`;
+        var msg_id = process.env.TELEGRAM_MESSAGE_ID;
+        var url = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&message_thread_id=${thread_id}&reply_to_message_id=${msg_id}&text=\xE2\x9A\xA0%20${message}&parse_mode=html&disable_web_page_preview=true`;
         return await axios.get(url).then((response) => {
             console.log('Sent alert to Telegram');
             return true;
@@ -66,18 +67,29 @@ export default class Mailer {
             ReplyToAddresses: [],
         };
     }
+    async test(){
+        if(process.env.TELEGRAM_CHAT_ID){
+            if(await this.sendTelegramMessage("Hello World !")){
+                console.log('Telegram test sent')
+            }
+        } else {
+            console.warn('TELEGRAM_CHAT_ID variable is undefined, please define it in your .env file')
+        }
+    }
     formatHTMLMessage(task, html, cat){
         var date = new Date();
         return "<!DOCTYPE html><html><body style='text-align:left;'><h1>Alert for "+ task +" !</h1><div style='margin-top:50px;'><p>An alert for task <b>"+task+"</b> on "+ process.env.CHAIN.toLowerCase() +" was saved...</p><table cellspacing='0' cellpadding='0' style='text-align: left;'><tr><th style='padding-right: 20px;'>Date</th><td>"+ date.toUTCString() +"</td></tr><tr><th style='padding-right: 20px;'>Chain</th><td>"+ process.env.CHAIN.toLowerCase() +"</td></tr><tr><th style='padding-right: 20px;'>Category</th><td>"+ cat +"</td></tr><tr><th>Task</th><td>" + task+ "</td></tr><tr><th></th><td><br /></td></tr><tr><th style='padding-right: 20px; vertical-align: top;'>Statuses</th><td style='vertical-align: top;'>"+html+"</td></tr></table></div><p style='margin-top:20px;'><a href='"+ process.env.DASHBOARD_URL +"' target='_blank'>Visit Telos Monitoring</a></p><small style='margin-top:60px;display:block;'>To unsubscribe from this mailing list please edit <a href='https://github.com/telosnetwork/telos-monitor/blob/master/emails-to-notify.json' target='_blank'>this file</a> and submit a PR. </small> </body></html>"
     }
     async notify(task, cat, errors, alerts, infos){
         if(errors.length === 0) return;
-        try {
-            if(await this.sendTelegramMessage("<b>Error(s) for " + cat + " " + task + " on " + process.env.CHAIN + " : </b>\n\n" + errors.join("\n") + "\n\n<a href='" + process.env.DASHBOARD_URL + "'>> Visit Telos Monitoring</a>")){
-               return;
+        if(process.env.TELEGRAM_CHAT_ID){
+            try {
+                if(await this.sendTelegramMessage("<b>Error(s) for " + cat + " " + task + " on " + process.env.CHAIN + " : </b>\n\n" + errors.join("\n") + "\n\n<a href='" + process.env.DASHBOARD_URL + "'>> Visit Telos Monitoring</a>")){
+                    return;
+                }
+            } catch (error) {
+                console.log('Telegram error: ', error, '. Sending message via email instead...');
             }
-        } catch (error) {
-            console.log('Telegram error: ', error, '. Sending message via email instead...');
         }
         const emails = this.getEmails(task);
         if(emails.length === 0){

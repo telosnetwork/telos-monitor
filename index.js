@@ -12,15 +12,15 @@ function run(i){
     console.log('RUNNING TASK: ' + FILES[i].replace('.js', ''))
 
     var file = TASK_PATH + "/" + FILES[i];
-    var process = childProcess.fork(file); // Launch task as child process
+    var cProcess = childProcess.fork(file); // Launch task as child process
 
     var invoked = false;
 
-    process.on('error', function (err) {
+    cProcess.on('error', function (err) {
         if (invoked) return;
         invoked = true;
     });
-    process.on('exit', function (code) {
+    cProcess.on('exit', function (code) {
         if (invoked) return;
         console.log(FILES[i].replace('.js', ''), "done with code", code);
         invoked = true;
@@ -31,6 +31,10 @@ function run(i){
 }
 
 async function main(){
+    if(process.env.NOTIFIER_LAUNCH_TEST){
+        let notifier = new Notifier();
+        await notifier.test();
+    }
     console.log('Checking endpoints availability...');
     let endpoints = new Endpoints();
     await endpoints.checkAllEndpointsAvailability();
